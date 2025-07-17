@@ -14,6 +14,7 @@ import { FaWhatsappSquare } from "react-icons/fa";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import InputButao from "../componentes/botao/InputBotao.jsx";
+import ModalCadastroUsuario from "../componentes/ModalCadastroUsuario.jsx";
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -229,6 +230,7 @@ const Usuarios = () => {
   const [enviando, setEnviando] = useState(false);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [modalEditarCliente, setModalEditarCliente] = useState("");
+  const [mostrarModal, setMostrarModal] = useState(false);
   const navigate = useNavigate();
   const schema = yup.object({
     nome: yup.string().required("O nome é obrigatório"),
@@ -550,7 +552,18 @@ const Usuarios = () => {
               value={pesquisa}
               onChange={handlePesquisaChange}
             />
-            <InputButao type="button" value="+ Cliente" onClick={abrirModal} />
+            {/* <InputButao type="button" value="+ Cliente" onClick={abrirModal} /> */}
+            <>
+      <button onClick={() => setMostrarModal(true)}>+ Cliente</button>
+      <ModalCadastroUsuario
+        isOpen={mostrarModal}
+        onClose={() => setMostrarModal(false)}
+        onSuccess={() => {
+          // Aqui você pode recarregar lista de usuários, se quiser
+        }}
+      />
+    </>
+
           </NavBar>
           <Modal
             isOpen={modalAberto}

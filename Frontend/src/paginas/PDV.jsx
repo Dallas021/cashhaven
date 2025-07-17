@@ -197,6 +197,15 @@ const PDV = ({ onMenuClick }) => {
   const [clienteCash, setClienteCash] = useState("");
   const [cashCpf, setCashCpf] = useState();
   const [cashPoint, setCashPoint] = useState();
+  const [isEnviando, setIsEnviando] = useState(false);
+  const [empresa, setEmpresa] = useState(null);
+  const [bairro, setBairro] = useState("")
+  const [cidade, setCidade] = useState("")
+  const [cnpj, setCnpj] = useState("")
+  const [endereco, setEndereco] = useState("")
+  const [estado, setEstado] = useState("")
+  const [razao, setRazao] = useState("")
+  const [IE, setIE] = useState("")
 
   // const handleSwitchChange = (checked) => {
   //   setIsChecked(checked);
@@ -317,6 +326,27 @@ const PDV = ({ onMenuClick }) => {
     }
   }, [tipoCliente]);
 
+  useEffect(() => {
+    const carregandoDadosEmpresa = async () => {
+      try {
+        const res = await apiAcai.get("company/all");
+        setEmpresa(res.data.message[0]);
+        setBairro(res.data.message[0].bairro);
+        setCidade(res.data.message[0].cidade);
+        setEndereco(res.data.message[0].endereco);
+        setEstado(res.data.message[0].estado);
+        setCnpj(res.data.message[0].cnpj);
+        setRazao(res.data.message[0].razao_social
+        );
+        setIE(res.data.message[0].ie);
+        console.log("TESTE", bairro);
+      } catch (error) {
+        console.error("Erro ao buscar os dados:", error);
+      }
+    };
+    carregandoDadosEmpresa();
+  }, []);
+
   const enviarPedidoParaMesa = async (e) => {
     e.preventDefault();
     try {
@@ -408,9 +438,7 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
           denyButtonText: `Não, quero continuar a venda`,
         })
           .then((result) => {
-            if (result.isConfirmed) {
-              onMenuClick("Usuarios");
-            }
+            on
           })
           .then(() => {
             localStorage.setItem("mensagemComCadastro", "true");
@@ -638,6 +666,7 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
     setCodigo_Produto("");
   };
   const botaoInativdo = () => {
+    if (isEnviando) return false;
     const valorRecebido = parseFloat(valorRecebidoPagamento());
     const valorTrocoFalta = parseFloat(valorTotal());
     const inativo = parseFloat(valorTrocoFalta) <= parseFloat(valorRecebido);
@@ -732,6 +761,9 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
 
   const botaoEnvio = async (e) => {
     e.preventDefault();
+    if (isEnviando) return; 
+
+    setIsEnviando(true); 
 
     fecharModalConfirmacao();
 
@@ -827,6 +859,8 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
         }).then((result) => {
           if (result.isConfirmed) {
             const mensagemCupom = {
+              data: data,
+              hora: hora,
               type: "cupom",
               hash: "f2c3e4bb7b5577592d4b0c3b0fdd774084f2b1c53e2086b99bffcf74ad44d2e5f3c0a9fd3753209a967b4b3f913b6f0d81fa7509e2c62e3e7c577c28c8e084021d7ff722e6d953c535ffbc9a758c41b63d8d3ad3de89619d57c2251b91a5e4664a49a53d7e9d5e5331e5f6f3baf6c9b455ae37c1b6a56c",
               imp: "192.168.10.12",
@@ -858,6 +892,8 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
         toast.error("Erro inesperado:", error);
         console.log("kkkkkk", error);
       }
+    } finally {
+      setIsEnviando(false); 
     }
   };
 
@@ -1537,15 +1573,16 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
                 </div>
                 <div className="acai-flex">
                   <div className="flex-dados-1">
-                    <p>AÇAI COPACABANA</p>
+                    <p>{razao}</p>
                     <br />
                     <p className="endereco">
-                      Rua direta do Uruguai, N° 218 - Uruguai
+                      {endereco} - {bairro} - {cidade}/{estado}
                     </p>
                     <br />
                     <br />
-                    <h2>CNPJ: 89.455.000/003-00</h2>
-                    <h2>IE: </h2>
+                    <h2>CNPJ: {cnpj
+                      }</h2>
+                    <h2>IE:{IE} </h2>
                   </div>
                   <div className="flex-dados-2">
                     <h2>{data}</h2>
@@ -2214,13 +2251,14 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
                 </div>
               </div>
               <div className="btn-pagamento">
-                <button
-                  className="btn-finalizar"
-                  onClick={botaoEnvio}
-                  disabled={!botaoInativdo()}
-                >
-                  Finalizar
-                </button>
+              <button
+                className="btn-finalizar"
+                onClick={botaoEnvio}
+                disabled={!botaoInativdo()}
+              >
+                {isEnviando ? "Enviando..." : "Finalizar"}
+              </button>
+
                 <button
                   className="btn-cancelar-pagamento"
                   onClick={botaoCancelar}

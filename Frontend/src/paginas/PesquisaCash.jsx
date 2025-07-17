@@ -100,7 +100,7 @@ const Input = styled.input`
 const Button = styled.input`
   width: 100%;
   margin-top: 40px;
-  padding: 12px 90px;
+  padding: 12px 45px;
   background-color: #73287d;
   border: 1px solid #73287d;
   color: #f1f1f1;
@@ -190,6 +190,20 @@ const PesquisaCash = () => {
       console.error("Erro ao encontrar cliente:", error.message);
     }
   };
+  //BOTÃO CLIENTE SEM CPF
+  const ClienteSemCPF = () => {
+    setIsExiting(true);
+    setTimeout(() => {
+      navigate("/pdv", {
+        state: {
+          origen: "semCadastro",
+        },
+      });
+      setHasCashback(false);
+      setMessage("Cliente não possui cadastro.");
+      console.log("sem cadastro");
+    }, 500);
+  };
 
   return (
     <>
@@ -222,8 +236,10 @@ const PesquisaCash = () => {
                     value={cpf}
                     onChange={handleChange}
                   />
+                  
                   <Button type="submit" value="Pesquisar" />
                 </Form>
+                <Button type="button" value="Cliente Sem CPF" onClick={ClienteSemCPF} />
 
                 {message && <Message success={hasCashback}>{message}</Message>}
               </LoginForm>
