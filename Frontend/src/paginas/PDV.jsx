@@ -18,6 +18,7 @@ import usuario from "../assets/img/user.png";
 import Swal from "sweetalert2";
 import PropTypes from "prop-types";
 import { enviarMensagem, conectarSocket } from '../context/WebSocketEnvio.jsx';
+import ModalCadastroUsuario from "../componentes/ModalCadastroUsuario.jsx";
 
 const Container = styled.div`
   display: flex;
@@ -206,6 +207,8 @@ const PDV = ({ onMenuClick }) => {
   const [estado, setEstado] = useState("")
   const [razao, setRazao] = useState("")
   const [IE, setIE] = useState("")
+  const [mostrarModal, setMostrarModal] = useState(false);
+
 
   // const handleSwitchChange = (checked) => {
   //   setIsChecked(checked);
@@ -435,14 +438,17 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
           confirmButtonColor: "#07921e",
           denyButtonColor: "#d33",
           confirmButtonText: "Sim, desejo cadastrar",
-          denyButtonText: `Não, quero continuar a venda`,
-        })
-          .then((result) => {
-            on
-          })
-          .then(() => {
-            localStorage.setItem("mensagemComCadastro", "true");
-          });
+          denyButtonText: "Não, quero continuar a venda",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            console.log("Usuário escolheu cadastrar");
+            setMostrarModal(true);
+
+          } else if (result.isDenied) {
+            console.log("Usuário preferiu continuar a venda");
+          }
+          localStorage.setItem("mensagemComCadastro", "true");
+        });
       }
     } else if (origem === "comCadastro") {
       const mensagemExibida = localStorage.getItem("mensagemSemCadastro");
@@ -458,13 +464,14 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
     } else {
       console.error("Origem inválida ou não definida.");
     }
-
-    // Função de limpeza para remover as mensagens do localStorage ao sair do componente
+  
+    // Limpa os dados quando o componente for desmontado
     return () => {
       localStorage.removeItem("mensagemComCadastro");
       localStorage.removeItem("mensagemSemCadastro");
     };
   }, [origem]);
+  
 
   // const comCupom = () => {
   //   navigate("/cash", {
@@ -1162,6 +1169,14 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
   };
   return (
     <>
+    <ModalCadastroUsuario
+        isOpen={mostrarModal}
+        onRequestClose={() => setMostrarModal(false)}
+        onSuccess={() => {
+          // callback de sucesso após o cadastro
+          console.log("Cadastro realizado com sucesso!");
+        }}
+      />
       <nav>
         <div className="seta">
           <SetaVoltar />

@@ -375,11 +375,11 @@ const Usuarios = () => {
     try {
       await usuarioSchema.validate(dados, { abortEarly: false });
       const res = await apiAcai.post("/client/create", dados);
+      console.log(res)
       if (res.status === 200) {
-        // window.location.reload();
-
+         window.location.reload();
         navigate("/home");
-
+        console.log("aq")
         fecharModal();
       }
       console.log("Dados válidos:", dados);
@@ -448,7 +448,8 @@ const Usuarios = () => {
               text: "Aguarde enquanto processamos sua solicitação.",
               icon: "info",
               showConfirmButton: false,
-              allowOutsideClick: false,
+              
+              owOutsideClick: false,
             });
             const res = await apiAcai.delete(`/client/del/${id}`);
             if (res.status === 200) {
@@ -552,20 +553,16 @@ const Usuarios = () => {
               value={pesquisa}
               onChange={handlePesquisaChange}
             />
-            {/* <InputButao type="button" value="+ Cliente" onClick={abrirModal} /> */}
-            <>
-      <button onClick={() => setMostrarModal(true)}>+ Cliente</button>
-      <ModalCadastroUsuario
-        isOpen={mostrarModal}
-        onClose={() => setMostrarModal(false)}
-        onSuccess={() => {
-          // Aqui você pode recarregar lista de usuários, se quiser
-        }}
-      />
-    </>
-
+           <InputButao type="button" value="+ Cliente" onClick={() => setMostrarModal(true)} /> 
+           <ModalCadastroUsuario
+            isOpen={mostrarModal}
+            onRequestClose={() => setMostrarModal(false)}
+            onSuccess={() => {
+              
+            }}
+          />
           </NavBar>
-          <Modal
+          {/* <Modal
             isOpen={modalAberto}
             onRequestClose={fecharModal}
             contentLabel="Confirmar Pedido"
@@ -631,7 +628,7 @@ const Usuarios = () => {
                 )}
               </ButaoEnvioUsuario>
             </form>
-          </Modal>
+          </Modal> */}
 
           <Tabela>
             <thead>
