@@ -19,6 +19,46 @@ import Swal from "sweetalert2";
 import PropTypes from "prop-types";
 import { enviarMensagem, conectarSocket } from '../context/WebSocketEnvio.jsx';
 import ModalCadastroUsuario from "../componentes/ModalCadastroUsuario.jsx";
+import { createGlobalStyle } from "styled-components";
+
+
+const GlobalStyle = createGlobalStyle`
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    margin-left: 30px;
+  }
+
+  .btn-success {
+    background-color: #28a745;
+    color: white;
+    border: none;
+  }
+
+  .btn-success:hover {
+    background-color: #218838;
+  }
+
+  .btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+  }
+
+  .btn-danger:hover {
+    background-color: #c82333;
+  }
+`;
 
 const Container = styled.div`
   display: flex;
@@ -255,7 +295,7 @@ const PDV = ({ onMenuClick }) => {
     let formattedValue = parseInt(value) / 1000;
     formattedValue = formattedValue.toFixed(3);
     setKgacai(formattedValue);
-    console.log(kgacai, "kg açai");
+
   };
   // const valorPrecoCompra = (e) => {
   //   const inputValue = e.target.value;
@@ -310,8 +350,7 @@ const PDV = ({ onMenuClick }) => {
   const tipoCliente = mesa.cliente;
   const mesasFinArray = mesa.mesasFin;
   const numeroMesaAtual = mesa?.mesa?.tableid;
-  const uidCash = mesa?.mesa?.id_client;
-
+  const uidCash = mesa.id;
   const mesasFin = Array.isArray(mesasFinArray)
     ? mesasFinArray.filter((item) => item.tableid === numeroMesaAtual)
     : [];
@@ -342,7 +381,6 @@ const PDV = ({ onMenuClick }) => {
         setRazao(res.data.message[0].razao_social
         );
         setIE(res.data.message[0].ie);
-        console.log("TESTE", bairro);
       } catch (error) {
         console.error("Erro ao buscar os dados:", error);
       }
@@ -350,11 +388,14 @@ const PDV = ({ onMenuClick }) => {
     carregandoDadosEmpresa();
   }, []);
 
+  //ENVIO PARA ROTA DA TABELA, QUANDO O CLIENTE QUERER ADICIONAR MAIS ITEM NA MESA.
+  //PARA VERIFICAR A PRINCIPAL IR PARA O ARQUIVO MesaCliente
+
   const enviarPedidoParaMesa = async (e) => {
     e.preventDefault();
     try {
       const produtoPedidoMesa = produtos.map((produto) => ({
-        uid: 0,
+        uid: idLocal || uidCash,
         prodno: produto.id,
         unino: produto.unino,
         valor_unit: produto.precoUnitario,
@@ -381,12 +422,14 @@ const PDV = ({ onMenuClick }) => {
   const cpfLocal = arrayState?.cpf || 0;
   const nomeLocal = arrayState?.nome || 0;
   const pontosLocal = arrayState?.pontos || 0;
-  const idLocal = arrayState?.id || 0;
+  const idLocal = arrayState.mesa?.id_client || 0;
+
+  
   //2 - Esses clientes são informações clientes mesa
   useEffect(() => {
     const carregandoClienteCash = async () => {
       try {
-        const res = await apiAcai.get(`/client/serachuid?cpf=${uidCash}`);
+        const res = await apiAcai.get(`/client/serachuid?cpf=${idLocal || uidCash}`);
         setClienteCash(res.data.message[0].nome);
         setCashCpf(res.data.message[0].cpf);
         setCashPoint(res.data.message[0].cashback);
@@ -411,7 +454,7 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
     } else if (origem === 0) {
       abrirModalConfirmacao();
     } else {
-      //console.error("Origem inválida ou não definida.");
+      console.error("Origem inválida ou não definida.");
     }
   };
   useEffect(() => {
@@ -441,11 +484,9 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
           denyButtonText: "Não, quero continuar a venda",
         }).then((result) => {
           if (result.isConfirmed) {
-            console.log("Usuário escolheu cadastrar");
             setMostrarModal(true);
 
           } else if (result.isDenied) {
-            console.log("Usuário preferiu continuar a venda");
           }
           localStorage.setItem("mensagemComCadastro", "true");
         });
@@ -608,9 +649,10 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
     setTipo(novoTipo);
   };
   const envioParaMesa = () => {
+    
     navigate("/mesa_clientes", {
       state: {
-        uid: idLocal,
+        uid: idLocal === 0 ? uidCash : idLocal,
         produtos: produtos,
       },
     });
@@ -755,6 +797,10 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
   //     }
   //   } catch (error) {
   //     setDisabled(false);
+ 
+ 
+ 
+ 
   //     toast.error("Usuário não é administrador ou senha incorreta");
   //   }
   // };
@@ -816,23 +862,23 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
           tipo: item.tipo,
           valor_recebido: item.valor_recebido,
           valor_pedido: parseFloat(valorTotal()),
-          cb: cb,
+          cb: cb || 0,
           price_cb: item.tipo === 4 ? item.valor_recebido : 0,
-          bit: 0,
+          bit: valorTroco(),
         })),
         clients: clienteSemCadastro
           ? [
               {
                 pedido: proximoPedido,
                 uid: 0,
-                bit: 0,
+                bit: valorTroco(),
                 cashback: 0,
                 tableid: tipoCliente === "bolcao" ? mesaId : 0,
               },
             ]
           : [
               {
-                uid: idLocal,
+                uid: uidCash || idLocal,
                 pedido: proximoPedido,
                 bit: 1,
                 cashback: 0,
@@ -849,8 +895,8 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
       
         const swalWithCustomButtons = Swal.mixin({
           customClass: {
-            confirmButton: "btn-confirmar",
-            cancelButton: "btn-cancelar"
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger"
           },
           buttonsStyling: false
         });
@@ -897,7 +943,7 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
         toast.error(error.response.data.error);
       } else {
         toast.error("Erro inesperado:", error);
-        console.log("kkkkkk", error);
+      
       }
     } finally {
       setIsEnviando(false); 
@@ -948,7 +994,6 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
       );
 
       setResultadoPesquisaProduto(res.data.message);
-      console.log("aqui karol", res.data.message);
     } catch (error) {
       console.error("Erro ao encontrar produto:", error.message);
     }
@@ -1043,7 +1088,7 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
     // totalUnino = parseFloat((kgacai / 1000).toFixed(2));
     setPrecoUnitario(totalAcai);
     setUnino(totalUnino);
-    console.log("buu2", precoUnitario, kgacai, "total", totalUnino, totalAcai);
+
     setInsersaoManual(false);
     setModalKgAcaiCel(false);
     //setModalAdicionarProdudoCel(true);
@@ -1071,7 +1116,6 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
       const res = await apiAcai.get(`stock/serach/id?id=${id}`);
       if (res.status === 200) {
         const produdoEsto = res.data.message[0];
-        console.log("eu", produdoEsto);
         if (produdoEsto.id === 1) {
           setUnino(kgacai);
           setNome(produdoEsto.product);
@@ -1154,7 +1198,6 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("rece",valor_recebido,pontosLocal)
     if (parseFloat(valor_recebido) > parseFloat(totalPontos)) {
       toast.error(
         "O valor do cashback não pode ser maior que os pontos disponíveis."
@@ -1169,12 +1212,12 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
   };
   return (
     <>
+    <GlobalStyle />
     <ModalCadastroUsuario
         isOpen={mostrarModal}
         onRequestClose={() => setMostrarModal(false)}
         onSuccess={() => {
           // callback de sucesso após o cadastro
-          console.log("Cadastro realizado com sucesso!");
         }}
       />
       <nav>

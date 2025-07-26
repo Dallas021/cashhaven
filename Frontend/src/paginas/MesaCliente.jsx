@@ -70,8 +70,6 @@ const MesaCliente = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-
-        console.log("Sucesso", res.data.message);
         setMesas(res.data.message);
       } catch (error) {
         console.log("Erro", error);
@@ -128,8 +126,6 @@ const MesaCliente = () => {
                   navigate("/");
                 }
               });
-
-            console.log(res);
           } catch (error) {
             swalWithBootstrapButtons.fire(
               "Erro",

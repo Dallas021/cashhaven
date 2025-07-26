@@ -162,7 +162,7 @@ const PesquisaCash = () => {
         if (rawCpf === res.data.message[0].cpf) {
           setHasCashback(true);
           setMessage("Parabéns, existe cliente cadastrado com esse CPF");
-          console.log("com cadastro");
+          
           navigate("/pdv", {
             state: {
               id: cliente.id,
@@ -180,14 +180,14 @@ const PesquisaCash = () => {
           });
           setHasCashback(false);
           setMessage("Cliente não possui cadastro.");
-          console.log("sem cadastro");
+          
         }
       }, 500);
     } catch (error) {
       setHasCashback(false);
-      console.log("sem cadastro");
+
       setMessage("Cliente não possui cadastro.");
-      console.error("Erro ao encontrar cliente:", error.message);
+
     }
   };
   //BOTÃO CLIENTE SEM CPF
@@ -201,7 +201,6 @@ const PesquisaCash = () => {
       });
       setHasCashback(false);
       setMessage("Cliente não possui cadastro.");
-      console.log("sem cadastro");
     }, 500);
   };
 

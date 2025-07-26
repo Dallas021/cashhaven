@@ -336,7 +336,6 @@ const Parametros = () => {
       };
 
       const response = await apiAcai.post("/imp/register", payload);
-      console.log("Resposta do servidor:", response.data);
 
       setFormData({ ip: "", model: "" });
       setIsModalOpen(false);
@@ -385,7 +384,6 @@ const Parametros = () => {
       );
 
       if (res.status === 200) {
-        console.log("Atualizado com sucesso:", res.data);
         window.location.reload();
       }
     } catch (error) {
@@ -414,7 +412,6 @@ const Parametros = () => {
           setEmpresa(res.data);
         }
         setEmpresa(res.data.message[0]);
-        console.log("TESTE", empresa);
       } catch (error) {
         console.error("Erro ao buscar os dados:", error);
       }
@@ -451,7 +448,6 @@ const Parametros = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        console.log("Sucesso", res.data.message);
         setParametros(res.data.message);
       } catch (error) {
         console.log("Erro", error);

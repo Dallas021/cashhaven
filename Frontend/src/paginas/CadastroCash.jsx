@@ -147,7 +147,6 @@ export const CadastroCash = () => {
   const origem = local.state?.origen;
   const cpfLocal = local.state?.arrayState.cpf;
   const nomeLocal = local.state?.arrayState.nome;
-  console.log("aq", cpfLocal);
   const verificarBp = () => {
     const inativo = parseFloat(bp) === 1;
 
@@ -156,7 +155,6 @@ export const CadastroCash = () => {
   const handleSwitchChange = (checked) => {
     setIsChecked(checked);
     setBp(checked ? 1 : 0);
-    console.log(bp, "teste");
   };
   const formatCashback = (value) => {
     const numericValue = value.replace(/\D/g, "");

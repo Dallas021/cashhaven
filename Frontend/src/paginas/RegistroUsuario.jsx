@@ -291,7 +291,6 @@ const Usuarios = () => {
     const carregarUsuarios = async () => {
       try {
         const res = await apiAcai.get("/client/all", {});
-        console.log("Sucesso", res.data.message);
         setUsuarios(res.data.message);
       } catch (error) {
         console.log("Erro", error);
@@ -375,14 +374,13 @@ const Usuarios = () => {
     try {
       await usuarioSchema.validate(dados, { abortEarly: false });
       const res = await apiAcai.post("/client/create", dados);
-      console.log(res)
       if (res.status === 200) {
          window.location.reload();
         navigate("/home");
-        console.log("aq")
+
         fecharModal();
       }
-      console.log("Dados válidos:", dados);
+      
     } catch (error) {
       if (error instanceof yup.ValidationError) {
         error.inner.forEach((err) => {

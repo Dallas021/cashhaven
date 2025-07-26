@@ -105,9 +105,11 @@ const ListaMesas = () => {
     setExibirLista(!exibirLista);
   };
   const finalizarPedido = (mesa) => {
+    
     navigate("/pdv", {
       state: { mesa, mesasFin, cliente: "bolcao" },
     });
+    console.log("teste mesa",mesa, mesasFin, )
   };
   const adicionarProduto = (mesa) => {
     navigate("/pdv", {

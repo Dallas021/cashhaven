@@ -257,7 +257,6 @@ const CadastroCliente = () => {
     const carregarUsuarios = async () => {
       try {
         const res = await apiAcai.get("/user/all", {});
-        console.log("Sucesso", res.data.message);
         setUsuarios(res.data.message);
       } catch (error) {
         console.log("Erro", error);
@@ -283,7 +282,6 @@ const CadastroCliente = () => {
       });
     } else {
       setModalEditarCliente(true);
-      console.log("id", id);
     }
   };
   const fecharModalEditor = () => {
@@ -307,7 +305,6 @@ const CadastroCliente = () => {
         window.location.reload();
         fecharModal();
       }
-      console.log("Dados válidos:", dados);
     } catch (error) {
       if (error instanceof yup.ValidationError) {
         error.inner.forEach((err) => {

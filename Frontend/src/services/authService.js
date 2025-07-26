@@ -12,7 +12,6 @@ const login = async (data) => {
       const loginTime = new Date().getTime();
       const expiration = new Date(res.expiration);
       const userData = { user: res, loginTime, expiration };
-      console.log(userData);
       /*
       const userId = res.id;
       const chaveUltimoLogin = `primeiro login_${userId}`;

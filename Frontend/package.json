@@ -5,10 +5,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 192.168.10.16 --port 21066",
+    "dev": "vite --host localhost --port 21066",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite --host 192.168.10.16 --port 21066 preview"
+    "preview": "vite --host localhost --port 21066 preview"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

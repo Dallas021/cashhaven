@@ -351,7 +351,6 @@ const Estoque = () => {
     const carregarProdutos = async () => {
       try {
         const res = await apiAcai.get("/stock/all", {});
-        console.log("Sucesso", res.data.message);
         setProdutos(res.data.message);
         setProdutosOriginais(res.data.message);
       } catch (error) {

@@ -53,6 +53,7 @@ const Home = () => {
   const [tablefunction, setTablefunction] = useState("");
   const [dadosCaixa, setDadosCaixa] = useState("");
 
+  const [dataHora, setDataHora] = useState(new Date());
   const [dinheiro, setDinheiro] = useState("");
   const [modalDadoCaixa, setModalDadosCaixa] = useState(false);
   //const { messages } = useContext(WebSocketContext);
@@ -66,12 +67,12 @@ const Home = () => {
 
   const userData = JSON.parse(localStorage.getItem("user"));
   const { user } = userData || {};
+  const data = dataHora.toLocaleDateString();
 
   useEffect(() => {
     const carregarParametros = async () => {
       try {
         const res = await apiAcai.get("/param/all");
-        console.log("Sucesso", res.data.message[3].bit);
         setTablefunction(res.data.message[3].bit);
       } catch (error) {
         console.log("Erro", error);
@@ -126,11 +127,9 @@ const Home = () => {
       try {
         const res = await apiAcai.get(`/cx/validate?user_cx=${user.id}`);
         const dados = res.data.s0;
-
-        console.log("Dados do Caixa:", dados);
         setDadosCaixa(dados);
 
-        if (dados == "0" || 0) {
+        if (dados == 3) {
           setModalDadosCaixa(true);
         }
       } catch (error) {
@@ -165,7 +164,6 @@ const Home = () => {
     const carregarParametros = async () => {
       try {
         const res = await apiAcai.get("/param/all");
-        console.log("Sucesso", res.data.message[3].bit);
         setTablefunction(res.data.message[3].bit);
       } catch (error) {
         console.log("Erro", error);
@@ -196,7 +194,7 @@ const Home = () => {
         </div>
         <div className="linha-cal">
           <h2>
-            DIGITE ABAIXO O VALOR DE ABERTURA DO CAIXA NA DATA DE 11/10/2024
+            DIGITE ABAIXO O VALOR DE ABERTURA DO CAIXA NA DATA DE {data}
           </h2>
         </div>
         <div className="calculator">

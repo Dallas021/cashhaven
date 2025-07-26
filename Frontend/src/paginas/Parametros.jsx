@@ -1,6 +1,6 @@
 import styled, { createGlobalStyle } from "styled-components";
-import { useState } from "react";
-import Modal from "react-modal";
+import { useState, useEffect } from "react";
+import apiAcai from "../axios/config";
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -70,7 +70,34 @@ const SwitchContainer = styled.div`
 const Parametros = () => {
   const [abaAtual, setAbaAtual] = useState("empresa");
   const [vendaManual, setVendaManual] = useState(false);
+  const [empresa, setEmpresa] = useState(null);
+  const [bairro, setBairro] = useState("")
+  const [cidade, setCidade] = useState("")
+  const [cnpj, setCnpj] = useState("")
+  const [endereco, setEndereco] = useState("")
+  const [estado, setEstado] = useState("")
+  const [razao, setRazao] = useState("")
+  const [IE, setIE] = useState("")
 
+  useEffect(() => {
+      const carregandoDadosEmpresa = async () => {
+        try {
+          const res = await apiAcai.get("company/all");
+          setEmpresa(res.data.message[0]);
+          setBairro(res.data.message[0].bairro);
+          setCidade(res.data.message[0].cidade);
+          setEndereco(res.data.message[0].endereco);
+          setEstado(res.data.message[0].estado);
+          setCnpj(res.data.message[0].cnpj);
+          setRazao(res.data.message[0].razao_social
+          );
+          setIE(res.data.message[0].ie);
+        } catch (error) {
+          console.error("Erro ao buscar os dados:", error);
+        }
+      };
+      carregandoDadosEmpresa();
+    }, []);
   return (
     <>
       <GlobalStyle />
@@ -96,11 +123,11 @@ const Parametros = () => {
             </Linha>
             <Linha>
               <label>Razão Social</label>
-              <input defaultValue="AÇAÍ CONXEGO" />
+              <input value={razao} />
             </Linha>
             <Linha>
               <label>CNPJ</label>
-              <input defaultValue="25181960000126" />
+              <input value={cnpj} />
             </Linha>
             <Linha>
               <label>IE</label>

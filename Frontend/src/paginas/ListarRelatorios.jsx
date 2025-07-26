@@ -80,7 +80,6 @@ const ListarRelatorios = () => {
       try {
         const response = await apiAcai.get("/report/precificacao");
         const produtos = response.data.produtos;
-        console.log("Resposta da API:", produtos);
 
         if (produtos.length > 0) {
           const headers = Object.keys(produtos[0]);
