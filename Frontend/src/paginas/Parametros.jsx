@@ -1,7 +1,10 @@
 import styled, { createGlobalStyle } from "styled-components";
 import { useState, useEffect } from "react";
 import apiAcai from "../axios/config";
-
+import { padding } from "@mui/system";
+import { HiOutlinePencilSquare } from "react-icons/hi2";
+import { MdDelete } from "react-icons/md";
+import ModalEdicaoImpressora from "../componentes/ModalImpressora";
 const GlobalStyle = createGlobalStyle`
   * {
     margin: 0;
@@ -39,8 +42,31 @@ const Form = styled.div`
   border: 2px solid #73287d;
   border-radius: 0 0 10px 10px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 1.5rem;
+
+  input {
+    padding: 0.5rem;
+    border: 1px solid #73287d;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #73287d;
+  }
+
+  label {
+    font-weight: bold;
+    color: #73287d;
+  }
+`;
+
+const FormImpressao = styled.div`
+  background: #fff;
+  padding: 2rem;
+  border: 2px solid #73287d;
+  border-radius: 0 0 10px 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 1.2rem;
 
   input {
     padding: 0.5rem;
@@ -59,6 +85,12 @@ const Form = styled.div`
 const Linha = styled.div`
   display: flex;
   flex-direction: column;
+  justify-content: center;
+`;
+const LinhaImpressora = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
 `;
 
 const SwitchContainer = styled.div`
@@ -66,6 +98,22 @@ const SwitchContainer = styled.div`
   align-items: center;
   gap: 10px;
 `;
+const BotaoSalvar = styled.button`
+  padding: 0.7rem 2rem;
+  background: #73287d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+
+  &:hover {
+    background: #5a2060;
+  }
+`;
+
 
 const Parametros = () => {
   const [abaAtual, setAbaAtual] = useState("empresa");
@@ -78,6 +126,11 @@ const Parametros = () => {
   const [estado, setEstado] = useState("")
   const [razao, setRazao] = useState("")
   const [IE, setIE] = useState("")
+  const [ipPrincipal, setIpPrincipal] = useState("")
+  const [modeloImpressora, setModeloImpressora] = useState("")
+  const [modalAberta, setModalAberta] = useState(false);
+  const [sdmin, setSdmin] = useState("");
+  const [point, setPoint] = useState("");
 
   useEffect(() => {
       const carregandoDadosEmpresa = async () => {
@@ -98,6 +151,45 @@ const Parametros = () => {
       };
       carregandoDadosEmpresa();
     }, []);
+
+    useEffect(() => {
+      const carregandoImpressoraPrincipal = async () => {
+        try {
+          const res = await apiAcai.get("/imp/primary");
+          setIpPrincipal(res.data.ip)
+          setModeloImpressora(res.data.model)
+          console.log(res)
+        } catch (error) {
+          console.error("Erro ao buscar os dados:", error);
+        }
+      };
+      carregandoImpressoraPrincipal();
+    }, []);
+
+
+    //CONFIGURAÇÃO PDV
+
+    useEffect(() => {
+        const carregarParametros = async () => {
+          try {
+            const token = localStorage.getItem("token");
+            const res = await apiAcai.get("param/all", {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+    
+            setSdmin(res.data.message[5].valor);
+            setPoint(res.data.message[2].valor);
+            setVendaManual(res.data.message[9].bit);
+          } catch (error) {
+            console.log("Erro", error);
+          }
+        };
+        carregarParametros();
+      }, []);
+
+      
   return (
     <>
       <GlobalStyle />
@@ -131,23 +223,23 @@ const Parametros = () => {
             </Linha>
             <Linha>
               <label>IE</label>
-              <input defaultValue="202823201" />
+              <input value={IE}/>
             </Linha>
             <Linha>
               <label>Bairro</label>
-              <input defaultValue="BOCA DO RIO" />
+              <input value={bairro} />
             </Linha>
             <Linha>
               <label>Endereço</label>
-              <input defaultValue="RUA ORLANDO MOSCOSO 166" />
+              <input value={endereco} />
             </Linha>
             <Linha>
               <label>Cidade</label>
-              <input defaultValue="SALVADOR" />
+              <input value={cidade} />
             </Linha>
             <Linha>
               <label>Estado</label>
-              <input defaultValue="BA" />
+              <input value={estado} />
             </Linha>
           </Form>
         )}
@@ -156,11 +248,11 @@ const Parametros = () => {
           <Form>
             <Linha>
               <label>Saldo mínimo para resgate</label>
-              <input defaultValue="3.00" />
+              <input value={sdmin} />
             </Linha>
             <Linha>
               <label>Percentual cashback</label>
-              <input defaultValue="3.00" />
+              <input value={point} />
             </Linha>
             <Linha>
               <label>Desativar/Ativar venda manual</label>
@@ -173,26 +265,39 @@ const Parametros = () => {
                 <span>{vendaManual ? "Ativo" : "Inativo"}</span>
               </SwitchContainer>
             </Linha>
+            <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "center" }}>
+  <BotaoSalvar>Salvar</BotaoSalvar>
+</div>
+
           </Form>
         )}
 
         {abaAtual === "impressora" && (
-          <Form>
+          
+          <FormImpressao>
             <Linha>
               <label>ID</label>
-              <input defaultValue="1" disabled/>
+              <input value={1} disabled/>
             </Linha>
             <Linha>
               <label>IP</label>
-              <input defaultValue="192.168.10.16" disabled/>
+              <input value={ipPrincipal}disabled/>
             </Linha>
             <Linha>
               <label>Modelo</label>
-              <input defaultValue="ELGIN I9 (IP)" disabled/>
+              <input value={modeloImpressora} disabled/>
             </Linha>
-          </Form>
+            <LinhaImpressora>
+              <HiOutlinePencilSquare
+              style={{ cursor: "pointer" ,fontSize: "40px", color: "#73287d" }}
+              onClick={() => setModalAberta(true)}
+              />
+  
+            </LinhaImpressora>
+          </FormImpressao>
         )}
       </Container>
+      {modalAberta && <ModalEdicaoImpressora fechar={() => setModalAberta(false)} />}
     </>
   );
 };

@@ -148,6 +148,9 @@ const SideBar = ({ onMenuClick }) => {
   const [total_caixa, setTotal_Caixa] = useState("");
   const [valorSangria, setValorSangria] = useState(false);
   const [modalAberto, setModalAberto] = useState(false);
+  const [vsang, setVsang] = useState("")
+  const [fcx, setFcx] = useState("")
+  const [vendas_total, setVendas_total] = useState("")
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -201,6 +204,9 @@ const SideBar = ({ onMenuClick }) => {
         setVendas_Pix(res.data.vendas_pix);
         setAbertura(res.data.abertura);
         setTotal_Caixa(res.data.total_caixa);
+        setVsang(res.data.sangria)
+        setFcx(res.data.total_caixa)
+        setVendas_total(res.data.vendas_total)
         console.log("re", res.data);
       } catch (error) {
         console(error);
@@ -223,11 +229,13 @@ const SideBar = ({ onMenuClick }) => {
     e.preventDefault(e);
 
     const usuarioFechamento = {
-      userno: user && user.id,
+      user_cx: user && user.id,
       credito: vendas_credito,
       debito: vendas_debito,
       pix: vendas_pix,
       dinheiro: vendas_dinheiro,
+      vsang: vsang,
+      fcx: total_caixa
     };
 
     try {
@@ -411,13 +419,13 @@ const SideBar = ({ onMenuClick }) => {
                   <p>FECHAMENTO DO DIA</p>
                 </div>
                 <div className="modal-mensagem modal-coluna">
-                  <p>(+) TOTAL DE VENDA: R${10}</p>
+                  <p>(+) TOTAL DE VENDA: R${vendas_total}</p>
                 </div>
                 <div className="modal-mensagem modal-coluna">
-                  <p>(+) SALDO EM CAIXA: R${10}</p>
+                  <p>(+) SALDO EM CAIXA: R${total_caixa}</p>
                 </div>
                 <div className="modal-mensagem modal-coluna">
-                  <p className="red">(-) TOTAL SANGRIA: R${10}</p>
+                  <p className="red">(-) TOTAL SANGRIA: R${vsang}</p>
                 </div>
                 <div className="modal-coluna-col btn-col">
                   <button onClick={abrirModalCancelamento}>

@@ -15,6 +15,7 @@ import Grafico from "../componentes/Grafico";
 import Relatorio from "../componentes/Relatorio";
 import ListarRelatorios from "./ListarRelatorios";
 import Mesas from "./CadastroMesas";
+import {ForcaAbertura} from "../componentes/ForcaAbertura"
 //import { WebSocketContext } from "../context/WebSocketContext";
 //import QRCode from "react-qr-code";
 
@@ -129,7 +130,7 @@ const Home = () => {
         const dados = res.data.s0;
         setDadosCaixa(dados);
 
-        if (dados == 3) {
+        if (dados == 0) {
           setModalDadosCaixa(true);
         }
       } catch (error) {
@@ -138,28 +139,41 @@ const Home = () => {
     };
     carregarDadosDoCaixa();
   }, []);
-
   const confirmarAberturaCaixa = async (e) => {
-    e.preventDefault(e);
+    e.preventDefault();
+  
+    // Define aqui fora para estar disponível no catch
+    const abrirCaixa = {
+      dinheiro: parseFloat(dinheiro),
+      user_cx: user && user.id,
+    };
+  
     try {
-      const abrirCaixa = {
-        dinheiro: dinheiro,
-        user_cx: user && user.id,
-      };
-
       const res = await apiAcai.post("/cx/open", abrirCaixa);
-      window.location.reload(e);
-
+      //window.location.reload();
+  
       if (res.status === 200) {
         fecharModalDadosCaixa();
-        //fecharModalValorIncial();
         // toast.success("Abertura do caixa realizada");
+      } else if (res.status === 409) {
+        toast.error("Este caixa já foi aberto.");
       }
     } catch (error) {
-      console.log("Erro", error);
+      const status = error.response?.status;
+      const mensagem = error.response?.data?.error || "Erro ao abrir o caixa.";
+      console.log("errrrr",error.response.data.error)
+      if (status === 409) {
+        ForcaAbertura(async () => {
+          await apiAcai.post("/cx/forceopen", abrirCaixa);
+          fecharModalDadosCaixa();
+        }, mensagem);
+      } else {
+        toast.error("Erro inesperado ao abrir o caixa.");
+        console.error(error);
+      }
     }
   };
-
+  
   useEffect(() => {
     const carregarParametros = async () => {
       try {

@@ -1219,6 +1219,7 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
         onSuccess={() => {
           // callback de sucesso após o cadastro
         }}
+        
       />
       <nav>
         <div className="seta">
