@@ -235,7 +235,10 @@ const SideBar = ({ onMenuClick }) => {
       pix: vendas_pix,
       dinheiro: vendas_dinheiro,
       vsang: vsang,
-      fcx: total_caixa
+      fcx: total_caixa,
+      trnc: vendas_total,
+      abertura: abertura
+
     };
 
     try {
