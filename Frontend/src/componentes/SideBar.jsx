@@ -271,7 +271,7 @@ const SideBar = ({ onMenuClick }) => {
     const usuarioSangria = {
       user_cx: user && user.id,
       sang: sang,
-      sd_old: vendas_dinheiro,
+      sd_old: total_caixa,
     };
 
     try {
@@ -507,7 +507,7 @@ const SideBar = ({ onMenuClick }) => {
                     //onChange={(e) => {
                     //setSaldoIncial(e.target.value);
                     //}}
-                    value={vendas_dinheiro}
+                    value={total_caixa}
                     disabled
                   />
                   <label>Valor que será retirado</label>
