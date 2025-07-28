@@ -123,26 +123,33 @@ const Home = () => {
     setDinheiro((prev) => prev.slice(0, -1));
   };
 
+
+  //Confirma abertura da calculadora
   useEffect(() => {
     const carregarDadosDoCaixa = async () => {
       try {
         const res = await apiAcai.get(`/cx/validate?user_cx=${user.id}`);
         const dados = res.data.s0;
         setDadosCaixa(dados);
-
-        if (dados == 0) {
+        if (dados == 0)   {
           setModalDadosCaixa(true);
         }
       } catch (error) {
+        const status = error.response?.data.s1
+        if (status == 0) {
+           setModalDadosCaixa(true);
+        }
         console.log("Erro", error);
       }
     };
     carregarDadosDoCaixa();
   }, []);
+
+  //Confirma a abertura do caixa depois da calculadora 
   const confirmarAberturaCaixa = async (e) => {
     e.preventDefault();
   
-    // Define aqui fora para estar disponível no catch
+    // Define aqui fora para estar disponível no trycatch
     const abrirCaixa = {
       dinheiro: parseFloat(dinheiro),
       user_cx: user && user.id,
