@@ -195,6 +195,7 @@ const PDV = ({ onMenuClick }) => {
   const [pesquisaProduto, setPesquisaProduto] = useState("");
   const [insersaoManual, setInsersaoManual] = useState(false);
   const [kgacai, setKgacai] = useState("");
+  const [ipPrincipal, setIpPrincipal] = useState("")
   const [precoacai, setPrecoAcai] = useState("");
   const [pesoBalanca, setPesoBalanca] = useState("");
   const [codigo_produto, setCodigo_Produto] = useState("");
@@ -707,6 +708,18 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
 
     return troco.toFixed(2);
   };
+  useEffect(() => {
+    const carregandoImpressoraPrincipal = async () => {
+      try {
+        const res = await apiAcai.get("/imp/primary");
+        setIpPrincipal(res.data.ip)
+        console.log(res)
+      } catch (error) {
+        console.error("Erro ao buscar os dados:", error);
+      }
+    };
+    carregandoImpressoraPrincipal();
+  }, []);
   const botaoLimpar = () => {
     setNome("");
     setProduto("");
@@ -811,7 +824,7 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
     setInsersaoManual(false);
     setUnino(1);
   };
-
+ 
   const botaoEnvio = async (e) => {
     e.preventDefault();
     if (isEnviando) return; 
@@ -916,7 +929,7 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
               hora: hora,
               type: "cupom",
               hash: "f2c3e4bb7b5577592d4b0c3b0fdd774084f2b1c53e2086b99bffcf74ad44d2e5f3c0a9fd3753209a967b4b3f913b6f0d81fa7509e2c62e3e7c577c28c8e084021d7ff722e6d953c535ffbc9a758c41b63d8d3ad3de89619d57c2251b91a5e4664a49a53d7e9d5e5331e5f6f3baf6c9b455ae37c1b6a56c",
-              imp: "192.168.10.12",
+              imp: ipPrincipal,
               ped: proximoPedido.toString(),
               pedido: produtos.map((item) => ({
                 codigo: `${item.id || item.prodno || "00"}`,
