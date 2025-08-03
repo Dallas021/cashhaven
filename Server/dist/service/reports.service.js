@@ -13,13 +13,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const connection_1 = __importDefault(require("../database/connection"));
+/**
+ * Consulta o fechamento diário do caixa para um operador específico.
+ *
+ * Regras de negócio:
+ * - Busca a sangria do dia atual para o operador (se houver).
+ * - Consulta os valores totais das vendas do dia, separadas por forma de pagamento (débito, crédito, pix, dinheiro).
+ * - Obtém o saldo inicial do caixa para o operador no dia.
+ * - Calcula o total de vendas e o total em caixa considerando se houve sangria.
+ * - Retorna um resumo financeiro do dia para o operador.
+ *
+ * @param opcx - ID do operador/caixa
+ * @returns objeto com valores formatados e resumo financeiro
+ */
 function relDiario(opcx) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         const [sangria] = yield connection_1.default.query("SELECT sd_new FROM withdrawing WHERE user_cx = ? AND date = curdate()", [opcx]);
-        const Sangria = sangria[0].sd_new;
+        console.log("Operador:", opcx);
+        console.log("Sangria:", sangria);
+        let Sangria = 0;
+        if (sangria.length > 0 && sangria[0].sd_new != null) {
+            Sangria = parseFloat(sangria[0].sd_new);
+        }
         const [valorRetirada] = yield connection_1.default.query("SELECT sang FROM withdrawing WHERE user_cx = ? AND date = curdate()", [opcx]);
-        const retiradaSangria = (_a = valorRetirada[0].sang) !== null && _a !== void 0 ? _a : "0";
+        let retiradaSangria = "0";
+        if (valorRetirada.length > 0 && valorRetirada[0].sang != null) {
+            retiradaSangria = valorRetirada[0].sang;
+        }
         const [queryDebito] = yield connection_1.default.query(`
        SELECT sum(pay.valor_recebido) as debito 
        FROM purchases
@@ -27,13 +48,13 @@ function relDiario(opcx) {
        WHERE pay.tipo = 3 and purchases.date = curdate() and purchases.op = ?
         `, [opcx]);
         const [queryCredito] = yield connection_1.default.query(`
-       SELECT sum(pay.valor_recebido) as debito 
+       SELECT sum(pay.valor_recebido) as credito 
        FROM purchases
        INNER JOIN pay ON pay.pedido = purchases.pedido
        WHERE pay.tipo = 2 and purchases.date = curdate() and purchases.op = ?
         `, [opcx]);
         const [queryPix] = yield connection_1.default.query(`
-       SELECT sum(pay.valor_recebido) as debito 
+       SELECT sum(pay.valor_recebido) as pix 
        FROM purchases
        INNER JOIN pay ON pay.pedido = purchases.pedido
        WHERE pay.tipo = 0 and purchases.date = curdate() and purchases.op = ?
@@ -49,11 +70,11 @@ function relDiario(opcx) {
         FROM cx 
         WHERE date = CURDATE() AND bit = 1 AND user_cx = ?;
         `, [opcx]);
-        const saldoInicial = parseFloat((_c = (_b = saldo_inicial[0]) === null || _b === void 0 ? void 0 : _b.dinheiro) !== null && _c !== void 0 ? _c : "0");
-        const debito = parseFloat((_e = (_d = queryDebito[0]) === null || _d === void 0 ? void 0 : _d.debito) !== null && _e !== void 0 ? _e : "0");
-        const credito = parseFloat((_g = (_f = queryCredito[0]) === null || _f === void 0 ? void 0 : _f.credito) !== null && _g !== void 0 ? _g : "0");
-        const pix = parseFloat((_j = (_h = queryPix[0]) === null || _h === void 0 ? void 0 : _h.pix) !== null && _j !== void 0 ? _j : "0");
-        const dinheiro = parseFloat((_l = (_k = queryDinheiro[0]) === null || _k === void 0 ? void 0 : _k.dinheiro) !== null && _l !== void 0 ? _l : "0");
+        const saldoInicial = parseFloat((_b = (_a = saldo_inicial[0]) === null || _a === void 0 ? void 0 : _a.dinheiro) !== null && _b !== void 0 ? _b : "0");
+        const debito = parseFloat((_d = (_c = queryDebito[0]) === null || _c === void 0 ? void 0 : _c.debito) !== null && _d !== void 0 ? _d : "0");
+        const credito = parseFloat((_f = (_e = queryCredito[0]) === null || _e === void 0 ? void 0 : _e.credito) !== null && _f !== void 0 ? _f : "0");
+        const pix = parseFloat((_h = (_g = queryPix[0]) === null || _g === void 0 ? void 0 : _g.pix) !== null && _h !== void 0 ? _h : "0");
+        const dinheiro = parseFloat((_k = (_j = queryDinheiro[0]) === null || _j === void 0 ? void 0 : _j.dinheiro) !== null && _k !== void 0 ? _k : "0");
         const total_vendas = debito + credito + pix + dinheiro;
         let total_caixa;
         if (Sangria > 0) {
@@ -62,6 +83,8 @@ function relDiario(opcx) {
         else {
             total_caixa = saldoInicial + dinheiro;
         }
+        console.log("let total_caixa: ", total_caixa);
+        console.log("let sangria: ", sangria);
         return {
             success: true,
             abertura: saldoInicial.toFixed(2),
@@ -75,6 +98,14 @@ function relDiario(opcx) {
         };
     });
 }
+/**
+ * Verifica o parâmetro de alerta de estoque e retorna a quantidade de produtos com estoque baixo.
+ *
+ * Regras de negócio:
+ * - Consulta a tabela de parâmetros (sys) para verificar se o alerta está ativo (bit = 1).
+ * - Caso ativo, retorna a quantidade de itens cujo saldo disponível (sd) está abaixo ou igual ao valor limite configurado.
+ * - Caso desativado, retorna erro indicando que o alerta está desligado.
+ */
 function stockAlert() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -116,6 +147,12 @@ function stockAlert() {
         }
     });
 }
+/**
+ * Retorna a quantidade total de vendas feitas no dia atual.
+ *
+ * Regra de negócio:
+ * - Considera somente as vendas registradas com a data do dia corrente.
+ */
 function vendasDia() {
     return __awaiter(this, void 0, void 0, function* () {
         const [result] = yield connection_1.default.query("SELECT COUNT(pedido) AS venda_do_dia FROM purchases WHERE date = curdate()");
@@ -126,6 +163,16 @@ function vendasDia() {
         };
     });
 }
+/**
+ * Retorna o resumo diário de vendas dos últimos `day` dias.
+ *
+ * Regras de negócio:
+ * - Agrupa o total de vendas por data (formato dd/mm).
+ * - Ordena o resultado por data.
+ * - Utilizado para análise histórica e gráficos de vendas.
+ *
+ * @param day Quantidade de dias para trás da consulta
+ */
 function saleResum(day) {
     return __awaiter(this, void 0, void 0, function* () {
         const [resumoVendas] = yield connection_1.default.query(`
@@ -147,6 +194,18 @@ function saleResum(day) {
         };
     });
 }
+/**
+ * Calcula o ticket médio entre duas datas.
+ *
+ * Regras de negócio:
+ * - Considera o faturamento total (soma dos valores de pedidos pagos).
+ * - Conta a quantidade de vendas no período.
+ * - Calcula o ticket médio dividindo faturamento pelo número de vendas.
+ * - Agrupa resultados por dia.
+ *
+ * @param date_init Data inicial no formato YYYY-MM-DD
+ * @param date_finnaly Data final no formato YYYY-MM-DD
+ */
 function ticketMedio(date_init, date_finnaly) {
     return __awaiter(this, void 0, void 0, function* () {
         const query = `
@@ -168,6 +227,15 @@ function ticketMedio(date_init, date_finnaly) {
         };
     });
 }
+/**
+ * Compara o preço base do açaí com o custo por quilo dos complementos do estoque.
+ *
+ * Regras de negócio:
+ * - Busca o preço base do açaí (id=1 no estoque).
+ * - Busca produtos do tipo “KG” (type=1) para cálculo.
+ * - Calcula preço por quilo dos complementos e a margem de ganho em valor e percentual.
+ * - Retorna lista de complementos com essas informações para análise de lucro.
+ */
 function acaiXcomplementos() {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
@@ -180,8 +248,8 @@ function acaiXcomplementos() {
             };
         }
         const [stock] = yield connection_1.default.query("SELECT stock.product as produto, nsd.new_sd, nsd.p_custo, DATE_FORMAT(nsd.date, '%d/%m/%Y') as data_compra, " +
-            "CASE WHEN nsd.type = 1 THEN 'KG' WHEN nsd.type = 2 THEN 'UN' ELSE 'Outro' END as tipo " +
-            "FROM nsd INNER JOIN stock ON stock.id = nsd.productid WHERE nsd.type = 1");
+            "CASE WHEN stock.type = 1 THEN 'KG' WHEN stock.type = 2 THEN 'UN' ELSE 'Outro' END as tipo " +
+            "FROM nsd INNER JOIN stock ON stock.id = nsd.productid WHERE stock.type = 1");
         if (stock.length === 0) {
             return {
                 success: false,

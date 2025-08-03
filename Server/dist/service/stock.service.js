@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const connection_1 = __importDefault(require("../database/connection"));
 function allStock() {
     return __awaiter(this, void 0, void 0, function* () {
-        const query = "SELECT id, product as produto, sd as saldo, p_custo as preco_custo, p_venda as preco_venda, forn as ultimo_fonecedor FROM stock";
+        const query = "SELECT id, product as produto, sd as saldo, p_custo as preco_custo, p_venda as preco_venda, forn as ultimo_fonecedor FROM stock WHERE D_E_L_E_T_ IS NULL OR D_E_L_E_T_ = ''";
         const [result] = yield connection_1.default.query(query);
         if (result.length === 0) {
             return {
@@ -86,7 +86,7 @@ function modifyProduct(nome, venda, id) {
 }
 function deleteProduct(pid) {
     return __awaiter(this, void 0, void 0, function* () {
-        const query = "DELETE FROM stock WHERE id = ?";
+        const query = "UPDATE stock SET D_E_L_E_T_ = '*' WHERE id = ?";
         const [result] = yield connection_1.default.query(query, [pid]);
         return {
             success: true,

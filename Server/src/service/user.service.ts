@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 
 
 async function allUser() {
-    const query = "SELECT id, nome, user as usuario FROM user";
+    const query = "SELECT id, nome, user as usuario FROM user WHERE D_E_L_E_T_ IS NULL OR D_E_L_E_T_ = '' ";
 
     const [result] = await pool.query(query);
 
@@ -17,7 +17,7 @@ async function allUser() {
 }
 
 async function dellUser(id: number) {
-    const query = "DELETE FROM user WHERE id = ?";
+    const query = "UPDATE user SET D_E_L_E_T_ = '*' WHERE id = ?";
 
     try {
         const [result]: [ResultSetHeader, any[]] = await pool.query(query, [id]);

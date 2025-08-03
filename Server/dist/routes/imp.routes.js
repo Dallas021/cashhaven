@@ -32,4 +32,9 @@ imp.get("/primary", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     const result = yield imp_service_1.default.primaryImp();
     res.status(result.success ? 200 : 500).json(result);
 }));
+imp.put("/primary/salved", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.body;
+    const result = yield imp_service_1.default.salvaPrimaryImp(id);
+    res.status(result.success ? 200 : 500).json(result);
+}));
 exports.default = imp;

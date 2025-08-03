@@ -57,7 +57,11 @@ function loginUser(usuario, senha) {
                 }
             }
             else {
-                return { success: false, errors: ["Usuário não encontrado"] };
+                return {
+                    success: false,
+                    errors: ["Usuário não encontrado"],
+                    code: 404
+                };
             }
         }
         catch (error) {

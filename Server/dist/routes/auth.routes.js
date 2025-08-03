@@ -18,6 +18,9 @@ const auth = (0, express_1.Router)();
 auth.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { usuario, senha } = req.body;
     const result = yield auth_service_1.default.loginUser(usuario, senha);
+    if (result.code === 404) {
+        res.status(404).json(result);
+    }
     res.status(result.success ? 200 : 500).json(result);
 }));
 auth.post("/register", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

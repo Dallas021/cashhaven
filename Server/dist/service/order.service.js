@@ -49,6 +49,74 @@ const connection_1 = __importDefault(require("../database/connection"));
 const dotenv = __importStar(require("dotenv"));
 const nfc_service_1 = __importDefault(require("./nfc.service"));
 dotenv.config();
+/**
+ * 🧾 Cria um pedido completo (produtos, pagamentos e clientes).
+ *
+ * 📌 Regras de negócio:
+ * - Valida se o cliente já está cadastrado antes de continuar (caso `uid != 0`);
+ * - Insere os produtos comprados na tabela `pedno`;
+ * - Insere os dados de pagamento na tabela `pay`;
+ *     - Se `cb = 1`, aplica desconto via cashback e valida saldo;
+ *     - Se `cb = 0`, calcula e credita o valor de cashback (baseado em %);
+ *     - Integra com NFC-e (via `nfcService`) se o tipo de pagamento exigir e se o parâmetro Sefaz estiver igual a 1 (ID 9 tabela sys);
+ * - Insere os dados dos clientes na tabela `purchases`;
+ * - Libera a mesa usada (t2 = 0) e marca os pedidos da mesa como finalizados (`bit = 0`);
+ * - Toda a operação ocorre dentro de uma transação.
+ *
+ * @param order - Objeto contendo os arrays abaixo:
+ *
+ * Estrutura do objeto `order`:
+ * {
+ *   produtos: Produto[],   // Produtos do pedido
+ *   pagamentos: Pagamento[], // Formas de pagamento usadas
+ *   clients: Client[]       // Clientes relacionados ao pedido
+ * }
+ *
+ * --- Estrutura dos arrays ---
+ *
+ * Produto {
+ *   pedido: number;         // ID do pedido ao qual o produto pertence
+ *   prodno: number;         // ID do produto
+ *   valor_unit: number;     // Valor unitário do produto
+ *   unino: number;          // Quantidade do produto
+ *   sta: string;            // Status do produto (ex: 'A' para ativo)
+ *   userno: number;         // Usuário que registrou o produto
+ *   produto_nome?: string;  // Nome do produto (opcional)
+ * }
+ *
+ * Pagamento {
+ *   pedido: number;         // ID do pedido ao qual o pagamento pertence
+ *   tipo: string;           // Tipo de pagamento (ex: '0' = PIX, '1' = Dinheiro, '2' = Crédito, '3' = Débito)
+ *   valor_recebido: number; // Valor recebido na forma de pagamento
+ *   valor_pedido: number;   // Valor total do pedido
+ *   cb?: number;            // Indicador de uso de cashback (0 ou 1)
+ *   price_cb?: number;      // Valor do cashback usado (se aplicável)
+ *   bit: number;            // Troco ou campo obrigatório para validação
+ * }
+ *
+ * Client {
+ *   pedido: number;         // ID do pedido associado ao cliente
+ *   uid: number;            // ID do cliente (0 se cliente genérico / balcão)
+ *   cashback: number;       // Cashback acumulado para o cliente - Se pagamento.cb = 1 não gera cashback
+ *   cpf?: string;           // CPF do cliente (usado para validações)
+ *   tableid?: number;       // ID da mesa (0 se pedido balcão)
+ *   op?: number;            // Operador responsável pelo pedido
+ * }
+ *
+ * --- Diferenças na estrutura para pedido Mesa e Balcão ---
+ *
+ * Pedido Mesa:
+ * - `tableid` > 0 (mesa física vinculada)
+ * - Pode ter múltiplos clientes no array `clients` (ex: grupo na mesma mesa)
+ * - Após finalizado, libera mesa e marca pedidos mesa como finalizados
+ *
+ * Pedido Balcão:
+ * - `tableid` == 0 (sem mesa)
+ * - Normalmente apenas um cliente (pode ter `uid` == 0 para cliente genérico)
+ * - Não há liberação de mesa nem controle de pedidos mesa
+ *
+ * @returns Objeto com status da operação: sucesso ou erro, com mensagens detalhadas.
+ */
 function createOrder(order) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j;
@@ -197,6 +265,15 @@ function createOrder(order) {
         }
     });
 }
+/**
+ * 🔢 Retorna o próximo número de pedido (incrementando o maior valor atual em `pedno`).
+ *
+ * 📌 Regras de negócio:
+ * - Busca o maior valor de `pedido` na tabela `pedno` e soma 1.
+ * - Se não houver nenhum registro, retorna 1 como valor inicial.
+ *
+ * @returns Novo número de pedido sugerido
+ */
 function orderNext() {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
@@ -209,9 +286,25 @@ function orderNext() {
         };
     });
 }
+/**
+ * 🧾 Armazena o retorno da emissão da NFC-e no banco de dados.
+ *
+ * 📌 Regras de negócio:
+ * - Registra as informações da nota fiscal no painel NFC-e.
+ *
+ * @param uuid - Identificador único
+ * @param status - Status da nota
+ * @param motivo - Motivo do retorno
+ * @param nfe - Número da nota fiscal
+ * @param serie - Série da NFe
+ * @param modelo - Modelo da NFe
+ * @param recibo - Número de recibo
+ * @param chave - Chave de acesso da NFe
+ * @returns Mensagem de confirmação
+ */
 function panelNFC(uuid, status, motivo, nfe, serie, modelo, recibo, chave) {
     return __awaiter(this, void 0, void 0, function* () {
-        const query = "INSERT INTO (uuid, status, motivo, nfe, serie, modelo, recibo, chave) VALUES (?,?,?,?,?,?,?,?)";
+        const query = "INSERT INTO panel_nfc (uuid, status, motivo, nfe, serie, modelo, recibo, chave) VALUES (?,?,?,?,?,?,?,?)";
         const [result] = yield connection_1.default.query(query, [uuid, status, motivo, nfe, serie, modelo, recibo, chave]);
         return {
             success: true,

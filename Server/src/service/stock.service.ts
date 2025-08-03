@@ -2,7 +2,7 @@ import pool from "../database/connection";
 import { RowDataPacket } from "mysql2";
 
 async function allStock() {
-    const query = "SELECT id, product as produto, sd as saldo, p_custo as preco_custo, p_venda as preco_venda, forn as ultimo_fonecedor FROM stock";
+    const query = "SELECT id, product as produto, sd as saldo, p_custo as preco_custo, p_venda as preco_venda, forn as ultimo_fonecedor FROM stock WHERE D_E_L_E_T_ IS NULL OR D_E_L_E_T_ = ''";
 
     const [result]: [any[], any[]] = await pool.query(query);
 
@@ -82,7 +82,7 @@ async function modifyProduct(nome:string, venda:number, id:number) {
 }
 
 async function deleteProduct(pid:number) {
-    const query = "DELETE FROM stock WHERE id = ?";
+    const query = "UPDATE stock SET D_E_L_E_T_ = '*' WHERE id = ?";
     const [result] = await pool.query(query, [pid]);
 
     return {

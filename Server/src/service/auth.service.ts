@@ -26,6 +26,7 @@ interface LoginResponse {
   details?: any;
   jwt?: string;
   cargo?: string;
+  code?: number 
 }
 
 interface RegisterResponse {
@@ -35,6 +36,7 @@ interface RegisterResponse {
   details?: any;
   jwt?: string;
   cargo?: string;
+  code?: number 
 }
 
 interface RegisterUserData {
@@ -85,7 +87,11 @@ async function loginUser(usuario: string, senha: string): Promise<LoginResponse>
         return { success: false, errors: ["Senha incorreta"] };
       }
     } else {
-      return { success: false, errors: ["Usuário não encontrado"] };
+      return { 
+         success: false,
+         errors: ["Usuário não encontrado"],
+         code: 404 
+        };
     }
   } catch (error) {
     return { success: false, errors: ["Erro no Banco de Dados"], details: error };

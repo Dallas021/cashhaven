@@ -16,7 +16,7 @@ const connection_1 = __importDefault(require("../database/connection"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 function allUser() {
     return __awaiter(this, void 0, void 0, function* () {
-        const query = "SELECT id, nome, user as usuario FROM user";
+        const query = "SELECT id, nome, user as usuario FROM user WHERE D_E_L_E_T_ IS NULL OR D_E_L_E_T_ = '' ";
         const [result] = yield connection_1.default.query(query);
         console.log(result);
         return {
@@ -27,7 +27,7 @@ function allUser() {
 }
 function dellUser(id) {
     return __awaiter(this, void 0, void 0, function* () {
-        const query = "DELETE FROM user WHERE id = ?";
+        const query = "UPDATE user SET D_E_L_E_T_ = '*' WHERE id = ?";
         try {
             const [result] = yield connection_1.default.query(query, [id]);
             if (result.affectedRows > 0) {

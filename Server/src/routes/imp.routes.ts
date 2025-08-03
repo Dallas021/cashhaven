@@ -29,4 +29,12 @@ imp.get("/primary", async (req: Request, res: Response) => {
     res.status(result.success ? 200 : 500).json(result)
 })
 
+imp.put("/primary/salved", async (req: Request, res:Response) => {
+    const { id } = req.body;
+
+    const result = await impService.salvaPrimaryImp(id)
+
+    res.status(result.success ? 200 : 500).json(result);
+})
+
 export default imp;

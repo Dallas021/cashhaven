@@ -39,4 +39,8 @@ table.get("/ped/all", (req, res) => __awaiter(void 0, void 0, void 0, function* 
     const result = yield table_service_1.default.pedTable();
     res.status(result.success ? 200 : 500).json(result);
 }));
+table.post("/liberar/all", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield table_service_1.default.cleanTablePed();
+    res.status(result.success ? 200 : 500).json(result);
+}));
 exports.default = table;

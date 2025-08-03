@@ -42,4 +42,10 @@ table.get("/ped/all", async (req:Request, res:Response) => {
     res.status(result.success ? 200 : 500).json(result)
 })
 
+table.post("/liberar/all", async (req:Request, res:Response) => {
+    const result = await tableService.cleanTablePed();
+
+    res.status(result.success ? 200 : 500).json(result)
+})
+
 export default table;

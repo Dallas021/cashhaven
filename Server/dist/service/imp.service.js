@@ -13,7 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.allImp = allImp;
-exports.primaryImp = primaryImp;
 const connection_1 = __importDefault(require("../database/connection"));
 function cupom(PedidoItem, hash, imp) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -47,7 +46,7 @@ function allImp() {
 function registerImp(ip, model) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const [result] = yield connection_1.default.query('INSERT INTO imp VALUES (null,?,?)', [ip, model]);
+            const [result] = yield connection_1.default.query('INSERT INTO imp (ip, id_model) VALUES (?,?)', [ip, model]);
             return {
                 success: true,
                 message: 'Impressora cadastrada com sucesso'
@@ -84,7 +83,7 @@ function allModels() {
 }
 function primaryImp() {
     return __awaiter(this, void 0, void 0, function* () {
-        const [rows] = yield connection_1.default.query("SELECT ip FROM imp WHERE bit = 1");
+        const [rows] = yield connection_1.default.query("SELECT imp.ip as ip, impm.ref as modelo FROM imp INNER JOIN imp_model impm ON imp.id_model = impm.id WHERE imp.bit = 1 AND imp.D_E_L_E_T_ IS NULL");
         if (rows.length !== 1) {
             return {
                 success: false,
@@ -96,12 +95,32 @@ function primaryImp() {
         return {
             success: true,
             ip: rows[0].ip,
+            model: rows[0].modelo
         };
+    });
+}
+function salvaPrimaryImp(id) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const [retiraPrimari] = yield connection_1.default.query("UPDATE imp SET bit = 0");
+            const [newImp] = yield connection_1.default.query("UPDATE imp SET bit = 1 WHERE id = ?", [id]);
+            return {
+                success: true,
+                message: "Impressora primária atualizada com sucesso"
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: "Erro ao cadastrar impreesora primária"
+            };
+        }
     });
 }
 exports.default = {
     registerImp,
     allImp,
     allModels,
-    primaryImp
+    primaryImp,
+    salvaPrimaryImp
 };

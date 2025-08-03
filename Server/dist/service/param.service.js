@@ -23,14 +23,33 @@ function allParams() {
         };
     });
 }
-function updateParams(valor, bit, id) {
+function updateParams(params) {
     return __awaiter(this, void 0, void 0, function* () {
-        const query = "UPDATE sys SET value = ?, bit = ?  WHERE id = ?";
-        const [result] = yield connection_1.default.query(query, [valor, bit, id]);
-        return {
-            success: true,
-            message: ["Parâmetro atualizado com sucesso"]
-        };
+        const query = "UPDATE sys SET value = ?, bit = ? WHERE id = ?";
+        const connection = yield connection_1.default.getConnection();
+        try {
+            yield connection.beginTransaction();
+            for (const { valor, bit, id } of params) {
+                console.log("Query", query);
+                console.log("Valores:   valor: ", valor, "BIT: ", bit, "ID: ", id);
+                yield connection.query(query, [valor, bit, id]);
+            }
+            yield connection.commit();
+            return {
+                success: true,
+                message: ["Parâmetros atualizados com sucesso"]
+            };
+        }
+        catch (error) {
+            yield connection.rollback();
+            return {
+                success: false,
+                message: ["Erro ao atualizar parâmetros"]
+            };
+        }
+        finally {
+            connection.release();
+        }
     });
 }
 function whatsappServer() {

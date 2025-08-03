@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./Server
+    container_name: node_backend
+    ports:
+      - "21176:21176"
+    volumes:
+      - ./backend
+    command: npm run prod
+
+  frontend:
+    build: ./Frontend
+    container_name: node_frontend
+    ports:
+      - "21066:21066"
+    volumes:
+      - ./frontend
+    command: npm run preview

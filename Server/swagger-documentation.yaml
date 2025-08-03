@@ -1,0 +1,1244 @@
+openapi: 3.0.3
+info:
+  title: CashHaven API
+  description: |
+    API completa para o sistema CashHaven - Sistema de gestão comercial com funcionalidades de vendas, estoque, clientes, pedidos e integração com WhatsApp.
+    
+    ## Autenticação
+    A API utiliza autenticação JWT (JSON Web Token). Para acessar endpoints protegidos, inclua o token no header Authorization:
+    ```
+    Authorization: Bearer <seu_token_jwt>
+    ```
+    
+    ## Funcionalidades Principais
+    - **Autenticação e Autorização**: Login/registro de usuários com diferentes níveis de acesso
+    - **Gestão de Usuários**: CRUD completo para usuários do sistema
+    - **Gestão de Clientes**: Cadastro e gerenciamento de clientes
+    - **Controle de Estoque**: Gerenciamento completo de produtos e estoque
+    - **Sistema de Vendas**: Processamento de vendas e transações
+    - **Gestão de Pedidos**: Criação e acompanhamento de pedidos
+    - **Integração WhatsApp**: Comunicação automatizada via WhatsApp
+    - **Relatórios**: Geração de relatórios de vendas e estoque
+    - **WebSocket**: Comunicação em tempo real
+    
+  version: 1.0.0
+  contact:
+    name: CashHaven Support
+    email: support@cashhaven.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:5238/api
+    description: Servidor de desenvolvimento
+  - url: https://api.cashhaven.com/api
+    description: Servidor de produção
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT obtido através do endpoint de login
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID único do usuário
+          example: 1
+        nome:
+          type: string
+          description: Nome completo do usuário
+          example: "João Silva"
+        usuario:
+          type: string
+          description: Nome de usuário para login
+          example: "joao.silva"
+        cargo:
+          type: string
+          description: Cargo/função do usuário
+          example: "Gerente"
+        adm:
+          type: integer
+          description: Nível de administrador (0 = usuário comum, 1 = administrador)
+          example: 0
+      required:
+        - nome
+        - usuario
+
+    Client:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID único do cliente
+          example: 1
+        nome:
+          type: string
+          description: Nome completo do cliente
+          example: "Maria Santos"
+        cpf:
+          type: string
+          description: CPF do cliente
+          example: "123.456.789-00"
+        telefone:
+          type: string
+          description: Telefone do cliente
+          example: "(11) 99999-9999"
+      required:
+        - nome
+        - cpf
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID único do produto
+          example: 1
+        produto:
+          type: string
+          description: Nome do produto
+          example: "Açaí 500ml"
+        compra:
+          type: number
+          format: decimal
+          description: Preço de compra
+          example: 5.50
+        venda:
+          type: number
+          format: decimal
+          description: Preço de venda
+          example: 12.00
+        saldo:
+          type: integer
+          description: Quantidade em estoque
+          example: 100
+        fornecedor:
+          type: string
+          description: Nome do fornecedor
+          example: "Fornecedor ABC"
+      required:
+        - produto
+        - compra
+        - venda
+        - saldo
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID único do pedido
+          example: 1
+        uuid:
+          type: string
+          description: UUID único do pedido
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        cliente_id:
+          type: integer
+          description: ID do cliente
+          example: 1
+        total:
+          type: number
+          format: decimal
+          description: Valor total do pedido
+          example: 45.50
+        status:
+          type: string
+          description: Status do pedido
+          enum: [pendente, processando, concluido, cancelado]
+          example: "pendente"
+        data_criacao:
+          type: string
+          format: date-time
+          description: Data de criação do pedido
+          example: "2024-01-15T10:30:00Z"
+
+    LoginRequest:
+      type: object
+      properties:
+        usuario:
+          type: string
+          description: Nome de usuário
+          example: "admin"
+        senha:
+          type: string
+          description: Senha do usuário
+          example: "senha123"
+      required:
+        - usuario
+        - senha
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se o login foi bem-sucedido
+          example: true
+        token:
+          type: string
+          description: Token JWT para autenticação
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        expiration:
+          type: string
+          format: date-time
+          description: Data de expiração do token
+          example: "2024-01-16T10:30:00Z"
+        nome:
+          type: string
+          description: Nome do usuário
+          example: "Administrador"
+        id:
+          type: integer
+          description: ID do usuário
+          example: 1
+        cargo:
+          type: string
+          description: Cargo do usuário
+          example: "Administrador"
+
+    RegisterRequest:
+      type: object
+      properties:
+        nome:
+          type: string
+          description: Nome completo do usuário
+          example: "João Silva"
+        nome_usuario:
+          type: string
+          description: Nome de usuário único
+          example: "joao.silva"
+        senha:
+          type: string
+          description: Senha do usuário
+          example: "senha123"
+        cargo:
+          type: string
+          description: Cargo/função do usuário
+          example: "Vendedor"
+        adm:
+          type: integer
+          description: Nível de administrador (0 ou 1)
+          example: 0
+      required:
+        - nome
+        - nome_usuario
+        - senha
+        - adm
+
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se a operação foi bem-sucedida
+          example: true
+        message:
+          type: string
+          description: Mensagem descritiva do resultado
+          example: "Operação realizada com sucesso"
+        data:
+          type: object
+          description: Dados retornados pela operação
+        error:
+          type: string
+          description: Mensagem de erro (quando success = false)
+        details:
+          type: object
+          description: Detalhes adicionais sobre o erro
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          description: Mensagem de erro
+          example: "Erro interno do servidor"
+        error:
+          type: string
+          description: Tipo do erro
+        details:
+          type: object
+          description: Detalhes técnicos do erro
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Autenticação
+      summary: Realizar login no sistema
+      description: |
+        Autentica um usuário no sistema usando nome de usuário e senha.
+        Retorna um token JWT que deve ser usado para acessar endpoints protegidos.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              admin:
+                summary: Login como administrador
+                value:
+                  usuario: "admin"
+                  senha: "admin123"
+              vendedor:
+                summary: Login como vendedor
+                value:
+                  usuario: "vendedor01"
+                  senha: "vend123"
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              examples:
+                success:
+                  summary: Login bem-sucedido
+                  value:
+                    success: true
+                    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    expiration: "2024-01-16T10:30:00Z"
+                    nome: "ADMINISTRADOR"
+                    id: 1
+                    cargo: "Administrador"
+        '500':
+          description: Erro no login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_credentials:
+                  summary: Credenciais inválidas
+                  value:
+                    success: false
+                    errors: ["Usuário não encontrado"]
+                wrong_password:
+                  summary: Senha incorreta
+                  value:
+                    success: false
+                    errors: ["Senha incorreta"]
+
+  /auth/register:
+    post:
+      tags:
+        - Autenticação
+      summary: Registrar novo usuário
+      description: |
+        Cria um novo usuário no sistema. Requer privilégios administrativos.
+        A senha é automaticamente criptografada antes de ser armazenada.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              new_user:
+                summary: Novo usuário vendedor
+                value:
+                  nome: "Maria Santos"
+                  nome_usuario: "maria.santos"
+                  senha: "senha123"
+                  cargo: "Vendedora"
+                  adm: 0
+              new_admin:
+                summary: Novo administrador
+                value:
+                  nome: "Carlos Admin"
+                  nome_usuario: "carlos.admin"
+                  senha: "admin456"
+                  cargo: "Gerente"
+                  adm: 1
+      responses:
+        '201':
+          description: Usuário criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                success: true
+                message: "Usuário cadastrado com sucesso"
+        '500':
+          description: Erro ao criar usuário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /user/all:
+    get:
+      tags:
+        - Usuários
+      summary: Listar todos os usuários
+      description: |
+        Retorna uma lista com todos os usuários cadastrados no sistema.
+        Requer autenticação JWT.
+      responses:
+        '200':
+          description: Lista de usuários retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        '401':
+          description: Token não fornecido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: "Token não fornecido"
+        '403':
+          description: Token inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: "Token inválido ou expirado"
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /user/del/{uid}:
+    delete:
+      tags:
+        - Usuários
+      summary: Excluir usuário
+      description: |
+        Remove um usuário do sistema pelo ID.
+        Operação irreversível que requer privilégios administrativos.
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          description: ID único do usuário a ser excluído
+          schema:
+            type: integer
+            example: 5
+      responses:
+        '200':
+          description: Usuário excluído com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro ao excluir usuário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /user/update:
+    put:
+      tags:
+        - Usuários
+      summary: Atualizar dados do usuário
+      description: |
+        Atualiza as informações de um usuário existente.
+        Permite alterar nome, cargo, nível administrativo, senha e nome de usuário.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: ID do usuário a ser atualizado
+                  example: 1
+                nome:
+                  type: string
+                  description: Novo nome do usuário
+                  example: "João Silva Santos"
+                cargo:
+                  type: string
+                  description: Novo cargo do usuário
+                  example: "Supervisor"
+                adm:
+                  type: integer
+                  description: Novo nível administrativo
+                  example: 1
+                senha:
+                  type: string
+                  description: Nova senha (será criptografada)
+                  example: "novaSenha123"
+                user:
+                  type: string
+                  description: Novo nome de usuário
+                  example: "joao.santos"
+              required:
+                - id
+      responses:
+        '200':
+          description: Usuário atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro ao atualizar usuário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /client/all:
+    get:
+      tags:
+        - Clientes
+      summary: Listar todos os clientes
+      description: |
+        Retorna uma lista completa de todos os clientes cadastrados no sistema.
+      responses:
+        '200':
+          description: Lista de clientes retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Client'
+        '500':
+          description: Erro ao buscar clientes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /client/serach:
+    get:
+      tags:
+        - Clientes
+      summary: Buscar cliente por CPF
+      description: |
+        Busca um cliente específico utilizando o CPF como parâmetro de pesquisa.
+      parameters:
+        - name: cpf
+          in: query
+          required: true
+          description: CPF do cliente a ser buscado
+          schema:
+            type: string
+            example: "123.456.789-00"
+      responses:
+        '200':
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Client'
+        '500':
+          description: Cliente não encontrado ou erro na busca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /client/serachuid:
+    get:
+      tags:
+        - Clientes
+      summary: Buscar cliente por ID
+      description: |
+        Busca um cliente específico utilizando o ID como parâmetro de pesquisa.
+      parameters:
+        - name: cpf
+          in: query
+          required: true
+          description: ID do cliente a ser buscado
+          schema:
+            type: string
+            example: "1"
+      responses:
+        '200':
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Client'
+        '500':
+          description: Cliente não encontrado ou erro na busca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /client/create:
+    post:
+      tags:
+        - Clientes
+      summary: Criar novo cliente
+      description: |
+        Cadastra um novo cliente no sistema com CPF, nome e telefone.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cpf:
+                  type: string
+                  description: CPF do cliente
+                  example: "123.456.789-00"
+                name:
+                  type: string
+                  description: Nome completo do cliente
+                  example: "Maria Santos"
+                tel:
+                  type: string
+                  description: Telefone do cliente
+                  example: "(11) 99999-9999"
+              required:
+                - cpf
+                - name
+                - tel
+      responses:
+        '200':
+          description: Cliente criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro ao criar cliente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /client/update:
+    put:
+      tags:
+        - Clientes
+      summary: Atualizar dados do cliente
+      description: |
+        Atualiza as informações de um cliente existente.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: ID do cliente
+                  example: 1
+                nome:
+                  type: string
+                  description: Nome do cliente
+                  example: "Maria Santos Silva"
+                telefone:
+                  type: string
+                  description: Telefone do cliente
+                  example: "(11) 98888-8888"
+                cpf:
+                  type: string
+                  description: CPF do cliente
+                  example: "123.456.789-00"
+              required:
+                - id
+      responses:
+        '200':
+          description: Cliente atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro ao atualizar cliente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /client/delete/{id}:
+    delete:
+      tags:
+        - Clientes
+      summary: Excluir cliente
+      description: |
+        Remove um cliente do sistema pelo ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do cliente a ser excluído
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Cliente excluído com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro ao excluir cliente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /stock/all:
+    get:
+      tags:
+        - Estoque
+      summary: Listar todos os produtos
+      description: |
+        Retorna uma lista completa de todos os produtos em estoque.
+      responses:
+        '200':
+          description: Lista de produtos retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '500':
+          description: Erro ao buscar produtos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /stock/insert:
+    post:
+      tags:
+        - Estoque
+      summary: Adicionar novo produto
+      description: |
+        Cadastra um novo produto no estoque com todas as informações necessárias.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                produto:
+                  type: string
+                  description: Nome do produto
+                  example: "Açaí 500ml"
+                compra:
+                  type: number
+                  format: decimal
+                  description: Preço de compra
+                  example: 5.50
+                venda:
+                  type: number
+                  format: decimal
+                  description: Preço de venda
+                  example: 12.00
+                saldo:
+                  type: integer
+                  description: Quantidade inicial em estoque
+                  example: 100
+                fornecedor:
+                  type: string
+                  description: Nome do fornecedor
+                  example: "Fornecedor ABC"
+              required:
+                - produto
+                - compra
+                - venda
+                - saldo
+                - fornecedor
+      responses:
+        '200':
+          description: Produto adicionado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro ao adicionar produto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /stock/update/sd:
+    post:
+      tags:
+        - Estoque
+      summary: Atualizar saldo do produto
+      description: |
+        Atualiza o saldo em estoque de um produto específico.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: ID do produto
+                  example: 1
+                saldo:
+                  type: integer
+                  description: Nova quantidade em estoque
+                  example: 150
+                fornecedor:
+                  type: string
+                  description: Fornecedor
+                  example: "Fornecedor XYZ"
+                compra:
+                  type: number
+                  format: decimal
+                  description: Preço de compra
+                  example: 5.75
+              required:
+                - id
+                - saldo
+      responses:
+        '200':
+          description: Saldo atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro ao atualizar saldo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /stock/update/product:
+    put:
+      tags:
+        - Estoque
+      summary: Atualizar dados do produto
+      description: |
+        Atualiza nome e preço de venda de um produto.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: ID do produto
+                  example: 1
+                nome:
+                  type: string
+                  description: Novo nome do produto
+                  example: "Açaí Premium 500ml"
+                venda:
+                  type: number
+                  format: decimal
+                  description: Novo preço de venda
+                  example: 15.00
+              required:
+                - id
+      responses:
+        '200':
+          description: Produto atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro ao atualizar produto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /stock/delete/{id}:
+    delete:
+      tags:
+        - Estoque
+      summary: Excluir produto
+      description: |
+        Remove um produto do estoque pelo ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do produto a ser excluído
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Produto excluído com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro ao excluir produto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /stock/serach/id:
+    get:
+      tags:
+        - Estoque
+      summary: Buscar produto por ID
+      description: |
+        Busca um produto específico pelo ID.
+      parameters:
+        - name: id
+          in: query
+          required: true
+          description: ID do produto
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Produto encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '500':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /stock/serach/name:
+    get:
+      tags:
+        - Estoque
+      summary: Buscar produto por nome
+      description: |
+        Busca produtos pelo nome (busca parcial).
+      parameters:
+        - name: nome
+          in: query
+          required: true
+          description: Nome ou parte do nome do produto
+          schema:
+            type: string
+            example: "açaí"
+      responses:
+        '200':
+          description: Produtos encontrados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '500':
+          description: Erro na busca
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /sale/forsale:
+    post:
+      tags:
+        - Vendas
+      summary: Processar venda
+      description: |
+        Processa uma venda, atualizando o estoque e registrando a transação.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: ID do produto
+                  example: 1
+                venda:
+                  type: number
+                  format: decimal
+                  description: Valor da venda
+                  example: 12.00
+                inicio:
+                  type: string
+                  format: date-time
+                  description: Data/hora de início da venda
+                  example: "2024-01-15T10:00:00Z"
+                fim:
+                  type: string
+                  format: date-time
+                  description: Data/hora de fim da venda
+                  example: "2024-01-15T10:05:00Z"
+              required:
+                - id
+                - venda
+                - inicio
+                - fim
+      responses:
+        '200':
+          description: Venda processada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro ao processar venda
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /order/new:
+    get:
+      tags:
+        - Pedidos
+      summary: Obter próximo número de pedido
+      description: |
+        Retorna o próximo número sequencial disponível para um novo pedido.
+      responses:
+        '200':
+          description: Próximo número de pedido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  nextOrderNumber:
+                    type: integer
+                    example: 1001
+        '500':
+          description: Erro ao obter próximo número
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /order/create:
+    post:
+      tags:
+        - Pedidos
+      summary: Criar novo pedido
+      description: |
+        Cria um novo pedido no sistema com todos os itens e informações necessárias.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cliente_id:
+                  type: integer
+                  description: ID do cliente
+                  example: 1
+                items:
+                  type: array
+                  description: Lista de itens do pedido
+                  items:
+                    type: object
+                    properties:
+                      produto_id:
+                        type: integer
+                        example: 1
+                      quantidade:
+                        type: integer
+                        example: 2
+                      preco_unitario:
+                        type: number
+                        format: decimal
+                        example: 12.00
+                total:
+                  type: number
+                  format: decimal
+                  description: Valor total do pedido
+                  example: 24.00
+                observacoes:
+                  type: string
+                  description: Observações do pedido
+                  example: "Sem açúcar"
+              required:
+                - cliente_id
+                - items
+                - total
+      responses:
+        '200':
+          description: Pedido criado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  order_id:
+                    type: integer
+                    example: 1001
+                  uuid:
+                    type: string
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+        '500':
+          description: Erro ao criar pedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /order/panel:
+    post:
+      tags:
+        - Pedidos
+      summary: Atualizar status do pedido (NFC-e)
+      description: |
+        Atualiza o status de um pedido com informações da NFC-e.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  description: UUID do pedido
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                status:
+                  type: string
+                  description: Status da NFC-e
+                  example: "autorizada"
+                motivo:
+                  type: string
+                  description: Motivo do status
+                  example: "NFC-e autorizada com sucesso"
+                nfe:
+                  type: string
+                  description: Número da NFC-e
+                  example: "000000001"
+                serie:
+                  type: string
+                  description: Série da NFC-e
+                  example: "1"
+                modelo:
+                  type: string
+                  description: Modelo da NFC-e
+                  example: "65"
+                recibo:
+                  type: string
+                  description: Recibo da NFC-e
+                  example: "123456789"
+                chave:
+                  type: string
+                  description: Chave de acesso da NFC-e
+                  example: "12345678901234567890123456789012345678901234"
+              required:
+                - uuid
+                - status
+      responses:
+        '201':
+          description: Status atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '500':
+          description: Erro ao atualizar status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+tags:
+  - name: Autenticação
+    description: Endpoints para login e registro de usuários
+  - name: Usuários
+    description: Gerenciamento de usuários do sistema
+  - name: Clientes
+    description: Gerenciamento de clientes
+  - name: Estoque
+    description: Controle de produtos e estoque
+  - name: Vendas
+    description: Processamento de vendas
+  - name: Pedidos
+    description: Gestão de pedidos e NFC-e
+
+externalDocs:
+  description: Documentação adicional do CashHaven
+  url: https://docs.cashhaven.com
+

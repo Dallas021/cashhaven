@@ -20,8 +20,8 @@ param.get("/all", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.status(result.success ? 200 : 500).json(result);
 }));
 param.put("/update", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { valor, bit, id } = req.body;
-    const result = yield param_service_1.default.updateParams(valor, bit, id);
+    const params = req.body;
+    const result = yield param_service_1.default.updateParams(params);
     res.status(result.success ? 200 : 500).json(result);
 }));
 exports.default = param;

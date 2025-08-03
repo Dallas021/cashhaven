@@ -13,17 +13,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const connection_1 = __importDefault(require("../database/connection"));
+/**
+ * 🔍 Retorna todas as mesas ativas do sistema.
+ *
+ * 📌 Regras de negócio:
+ * - Filtra apenas mesas onde `t1 = 1` e que não estejam marcadas como deletadas (`D_E_L_E_T_ <> '*'`).
+ *
+ * @returns Todas as mesas disponíveis e ativas.
+ */
 function allTables() {
     return __awaiter(this, void 0, void 0, function* () {
-        const query = "SELECT * FROM tables";
+        const query = "SELECT * FROM tables WHERE t1 = 1 and D_E_L_E_T_ = '' OR D_E_L_E_T_ IS NULL";
         const [result] = yield connection_1.default.query(query);
-        console.log(result);
         return {
             success: true,
             message: result
         };
     });
 }
+/**
+ * ➕ Cadastra uma nova mesa no sistema.
+ *
+ * 📌 Regras de negócio:
+ * - Sempre insere `t1 = 1` (ativa) e `t2 = 0` (mesa disponível).
+ *
+ * @param id - ID da nova mesa
+ * @param referencia - Nome ou descrição da mesa
+ * @returns Mensagem de sucesso ou erro
+ */
 function insertTable(id, referencia) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -43,9 +60,15 @@ function insertTable(id, referencia) {
         }
     });
 }
+/**
+ * ❌ Exclui uma mesa com base no seu ID.
+ *
+ * @param uid - ID da mesa a ser excluída
+ * @returns Mensagem de sucesso
+ */
 function deletTable(uid) {
     return __awaiter(this, void 0, void 0, function* () {
-        const query = "DELETE FROM tables WHERE id = ?";
+        const query = "UPDATE tables SET D_E_L_E_T_ = '*' WHERE id = ?";
         const [result] = yield connection_1.default.query(query, [uid]);
         return {
             success: true,
@@ -53,6 +76,17 @@ function deletTable(uid) {
         };
     });
 }
+/**
+ * ➕ Insere uma lista de pedidos na tabela `tableped`.
+ *
+ * 📌 Regras de negócio:
+ * - Para cada pedido, insere um registro na tabela `tableped`.
+ * - Se o campo `bit` for `1`, a mesa correspondente é marcada como ocupada (`t2 = 1`).
+ * - Toda a operação é feita dentro de uma transação.
+ *
+ * @param pedidos - Lista de pedidos a serem inseridos
+ * @returns Mensagem de sucesso ou erro com controle de transação
+ */
 function insertTablePed(pedidos) {
     return __awaiter(this, void 0, void 0, function* () {
         let connection;
@@ -64,7 +98,8 @@ function insertTablePed(pedidos) {
             for (const pedido of pedidos) {
                 const { tableid, uid, prodno, unino, valor_unit, valor_total, bit } = pedido;
                 yield connection.query(query, [tableid, uid, prodno, unino, valor_unit, valor_total, bit]);
-                if (bit == 1) {
+                if (bit === 1) {
+                    // Marca a mesa como ocupada
                     const query = "UPDATE tables SET t2 = 1 WHERE id = ?";
                     const [result] = yield connection_1.default.query(query, [tableid]);
                 }
@@ -91,9 +126,23 @@ function insertTablePed(pedidos) {
         }
     });
 }
+/**
+ * 📦 Retorna todos os pedidos com status ativo (bit = 1).
+ *
+ * 📌 Regras de negócio:
+ * - Junta a tabela `tableped` com `stock` para obter nome do produto.
+ * - Filtra apenas registros onde `bit = 1` (ativos) e que não estejam excluídos logicamente.
+ *
+ * @returns Lista de pedidos em andamento (não finalizados)
+ */
 function pedTable() {
     return __awaiter(this, void 0, void 0, function* () {
-        const query = "SELECT tableid, id_client, stock.product, prodno, unino, valor_unit, valor_total, bit FROM tableped INNER JOIN stock ON stock.id = tableped.prodno WHERE bit = 1";
+        const query = `
+        SELECT tableid, id_client, stock.product, prodno, unino, valor_unit, valor_total, bit 
+        FROM tableped 
+        INNER JOIN stock ON stock.id = tableped.prodno 
+        WHERE bit = 1 AND tableped.D_E_L_E_T_ IS NULL
+    `;
         const [result] = yield connection_1.default.query(query);
         return {
             success: true,
@@ -101,10 +150,42 @@ function pedTable() {
         };
     });
 }
+/**
+ * 🧹 Limpa todos os pedidos e libera as mesas.
+ *
+ * 📌 Regras de negócio:
+ * - Marca todos os registros da `tableped` como deletados (`D_E_L_E_T_ = '*'`).
+ * - Define `t2 = 0` em todas as mesas, indicando que estão livres.
+ *
+ * ⚠️ IMPORTANTE:
+ * - Função destinada a ambiente de desenvolvimento ou correção de falhas em produção.
+ * - Não deve ser usada em ambiente produtivo sem confirmação.
+ *
+ * @returns Status da operação de limpeza
+ */
+function cleanTablePed() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const [cleanPed] = yield connection_1.default.query("UPDATE tableped SET D_E_L_E_T_ = '*'");
+            const [liberaMesa] = yield connection_1.default.query("UPDATE tables SET t2 = 0");
+            return {
+                success: true,
+                message: "Mesas liberadas com sucesso"
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                error: error
+            };
+        }
+    });
+}
 exports.default = {
     allTables,
     insertTable,
     deletTable,
     insertTablePed,
-    pedTable
+    pedTable,
+    cleanTablePed
 };

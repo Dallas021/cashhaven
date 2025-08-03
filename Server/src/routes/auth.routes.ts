@@ -8,6 +8,10 @@ auth.post("/login", async (req: Request, res: Response): Promise<void> => {
 
     const result = await authService.loginUser(usuario, senha);
 
+    if (result.code === 404) {
+        res.status(404).json(result)
+    }
+
     res.status(result.success ? 200 : 500).json(result)
 });
 

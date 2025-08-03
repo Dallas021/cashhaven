@@ -16,7 +16,7 @@ const connection_1 = __importDefault(require("../database/connection"));
 const config_1 = require("../utils/wpp/config");
 function allClient() {
     return __awaiter(this, void 0, void 0, function* () {
-        const query = "SELECT id, cpf, tel as telefone, name as nome FROM client";
+        const query = "SELECT id, cpf, tel as telefone, name as nome FROM client WHERE D_E_L_E_T_ IS NULL OR D_E_L_E_T_ = ''";
         const [result] = yield connection_1.default.query(query);
         return {
             success: true,
@@ -138,7 +138,7 @@ Fique à vontade para aproveitar todos os benefícios e continue saboreando o me
 }
 function deleteClient(uid) {
     return __awaiter(this, void 0, void 0, function* () {
-        const deleteQuery = "DELETE FROM client WHERE id = ?";
+        const deleteQuery = "UPDATE client SET D_E_L_E_T_ = '*' WHERE id = ?";
         const [result] = yield connection_1.default.query(deleteQuery, [uid]);
         return {
             success: true,

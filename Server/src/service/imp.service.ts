@@ -39,7 +39,7 @@ export async function allImp() {
 
 async function registerImp(ip: string, model: number) {
   try {
-    const [result] = await pool.query('INSERT INTO imp VALUES (null,?,?)', [ip, model]);
+    const [result] = await pool.query('INSERT INTO imp (ip, id_model) VALUES (?,?)', [ip, model]);
 
     return {
       success: true,
@@ -77,8 +77,8 @@ async function allModels() {
   }
 }
 
-export async function primaryImp() {
-  const [rows]: any = await pool.query("SELECT ip FROM imp WHERE bit = 1");
+async function primaryImp() {
+  const [rows]: any = await pool.query("SELECT imp.ip as ip, impm.ref as modelo FROM imp INNER JOIN imp_model impm ON imp.id_model = impm.id WHERE imp.bit = 1 AND imp.D_E_L_E_T_ IS NULL");
 
   if (rows.length !== 1) {
     return {
@@ -93,12 +93,32 @@ export async function primaryImp() {
   return {
     success: true,
     ip: rows[0].ip,
+    model: rows[0].modelo
   };
 }
+
+async function salvaPrimaryImp(id: number) {
+  try {
+    const [retiraPrimari] = await pool.query("UPDATE imp SET bit = 0");
+    const [newImp] = await pool.query("UPDATE imp SET bit = 1 WHERE id = ?", [id]);
+
+    return {
+      success: true,
+      message: "Impressora primária atualizada com sucesso"
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: "Erro ao cadastrar impreesora primária" 
+    }
+  }
+}
+
 
 export default {
   registerImp,
   allImp,
   allModels,
-  primaryImp
+  primaryImp,
+  salvaPrimaryImp
 }

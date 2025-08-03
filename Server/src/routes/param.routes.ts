@@ -10,9 +10,9 @@ param.get("/all", async (req: Request, res: Response) => {
 })
 
 param.put("/update", async (req: Request, res: Response) => {
-    const {valor, bit, id} = req.body;
+    const params = req.body;
 
-    const result = await paramService.updateParams(valor, bit, id);
+    const result = await paramService.updateParams(params);
 
     res.status(result.success ? 200 : 500).json(result);
 })

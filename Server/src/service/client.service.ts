@@ -6,7 +6,7 @@ declare global {
 }
 
 async function allClient() {
-    const query = "SELECT id, cpf, tel as telefone, name as nome FROM client";
+    const query = "SELECT id, cpf, tel as telefone, name as nome FROM client WHERE D_E_L_E_T_ IS NULL OR D_E_L_E_T_ = ''";
 
     const [result] = await pool.query(query);
 
@@ -134,7 +134,7 @@ Fique à vontade para aproveitar todos os benefícios e continue saboreando o me
 }
 
 async function deleteClient(uid:number) {
-    const deleteQuery = "DELETE FROM client WHERE id = ?";
+    const deleteQuery = "UPDATE client SET D_E_L_E_T_ = '*' WHERE id = ?";
     const [result] = await pool.query(deleteQuery, [uid]);
 
     return {

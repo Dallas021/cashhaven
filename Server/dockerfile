@@ -1,0 +1,18 @@
+FROM node:20.18.3
+
+WORKDIR /usr/src/app
+
+# Copia package.json e package-lock.json para aproveitar cache do npm install
+COPY package*.json ./
+
+# Instala dependências
+RUN npm install
+
+# Copia todo o código da aplicação
+COPY . .
+
+# Expõe a porta (ajuste conforme seu server)
+EXPOSE 21176
+
+# Comando para rodar sua aplicação em modo produção
+CMD ["npm", "run", "prod"]

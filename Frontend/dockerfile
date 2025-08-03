@@ -1,0 +1,31 @@
+# Etapa 1: build
+FROM node:20.18.3 AS builder
+
+WORKDIR /app
+
+# 🔹 Copia apenas os arquivos de dependência para aproveitar cache
+COPY package*.json ./
+
+# ✅ Instala as dependências
+RUN npm install
+
+# 🔹 Copia o restante do projeto (src, public, etc)
+COPY . .
+
+# ✅ Faz o build (só funciona com as dependências já instaladas)
+RUN npm run build
+
+# Etapa 2: execução (imagem final)
+FROM node:20.18.3
+
+WORKDIR /app
+
+# 🔹 Copia o resultado do build e dependências para o container final
+COPY --from=builder /app /app
+
+# Expondo a porta padrão usada pelo preview (Vite)
+EXPOSE 21066
+
+# ✅ Roda o preview
+CMD ["npm", "run", "preview"]
+
