@@ -370,7 +370,7 @@ const Parametros = () => {
   };
 
   const atualizarParametro = async (e) => {
-    e.preventDefault();
+
     try {
       const token = localStorage.getItem("token");
       const res = await apiAcai.put(

@@ -127,12 +127,21 @@ const Home = () => {
   //Confirma abertura da calculadora
   useEffect(() => {
     const carregarDadosDoCaixa = async () => {
+      const abrirCaixa = {
+      dinheiro: parseFloat(dinheiro),
+      user_cx: user && user.id,
+    };
       try {
         const res = await apiAcai.get(`/cx/validate?user_cx=${user.id}`);
         const dados = res.data.s0;
+        const mensagem = res.data.message;
         setDadosCaixa(dados);
         if (dados == 0)   {
           setModalDadosCaixa(true);
+        } else if (dados == 3) {
+          ForcaAbertura(async () => {
+          await apiAcai.post("/cx/forceopen", abrirCaixa);
+        }, mensagem);
         }
       } catch (error) {
         const status = error.response?.data.s1
