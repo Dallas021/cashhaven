@@ -518,13 +518,13 @@ const Estoque = () => {
               );
               swalWithBootstrapButtons.fire({
                 title: "Excluído!",
-                text: "O cliente foi excluído com sucesso.",
+                text: "O produto foi excluído com sucesso.",
                 icon: "success",
               });
             } else {
               swalWithBootstrapButtons.fire({
                 title: "Erro!",
-                text: "Não foi possível excluir o cliente.",
+                text: "Não foi possível excluir o produto.",
                 icon: "error",
               });
             }
@@ -532,14 +532,14 @@ const Estoque = () => {
             console.error(error);
             swalWithBootstrapButtons.fire({
               title: "Erro!",
-              text: "Ocorreu um erro ao tentar excluir o cliente.",
+              text: "Ocorreu um erro ao tentar excluir o produto.",
               icon: "error",
             });
           }
         } else if (result.dismiss === Swal.DismissReason.cancel) {
           swalWithBootstrapButtons.fire({
             title: "Cancelado",
-            text: "A exclusão foi cancelada. O cliente está seguro.",
+            text: "A exclusão foi cancelada.",
             icon: "error",
           });
         }
@@ -573,7 +573,7 @@ const Estoque = () => {
       if (res.status === 200) {
         fecharModalAddProduto();
         toast.success(res.data.message);
-        window.location.reload();
+        //window.location.reload();
       }
     } catch (error) {
       console.log(error);
