@@ -536,6 +536,17 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
     },
   };
 
+useEffect(() => {
+    if (modalPagamento && parseFloat(totalPontos) > 0) {
+      Swal.fire({
+        title: "Cliente possui cashback!",
+        text: `O cliente possui ${totalPontos} cashback disponível.`,
+        icon: "success",
+        draggable: true
+      });
+    }
+  }, [modalPagamento, totalPontos]);
+
   const { user } = userData || {};
   // const abrirModalKgAcaiCel = () => {
   //   setModalKgAcaiCel(true);
@@ -1215,15 +1226,21 @@ const nomeMesa =  mesaCash === "bolcao" ? clienteCash : nomeLocal;
     if (parseFloat(valor_recebido) > parseFloat(totalPontos)) {
       toast.error(
         "O valor do cashback não pode ser maior que os pontos disponíveis."
-      );
+      ) 
       return;
     }
+    if (parseFloat(valor_recebido) <= 0) {
+      setCb(0);
+    }  else {
     setTipo(4);
     adicionaPagamento();
+    }
+
+ 
     fecharModalCash();
     fecharModalCupom();
     abrirModalPagamento();
-  };
+  }
   return (
     <>
     <GlobalStyle />
