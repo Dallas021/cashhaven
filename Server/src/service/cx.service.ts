@@ -1,6 +1,6 @@
 import pool from "../database/connection";
 import { RowDataPacket } from "mysql2";
-import { getVenomClient, getVenomError } from '../utils/wpp/config';
+import { sendWhatsappMessage } from "../utils/wpp/config";
 
 interface CxRow extends RowDataPacket {
     bit: number;
@@ -233,7 +233,7 @@ async function forceOpenCx(user_cx: number, dinheiro: number) {
  *  - `aviso`: Status da tentativa de envio via WhatsApp (ou motivo pelo qual não foi enviado)
  */
 
-async function closeCx(user_cx: number, credito: number, debito: number, pix: number, dinheiro: number, fcx: number, vsang: number, trnc:number, abertura: number) {
+async function closeCx(user_cx: number, credito: number, debito: number, pix: number, dinheiro: number, fcx: number, vsang: number, trnc: number, abertura: number) {
     const query = "INSERT INTO cx (user_cx, credito, debito, pix, dinheiro, fcx, vsang, date, time, bit) VALUES (?,?,?,?,?,?,?,curdate(),curtime(),0);"
     const [result] = await pool.query(query, [user_cx, credito, debito, pix, dinheiro, fcx, vsang]);
     const [nomeOperador] = await pool.query<RowDataPacket[]>("SELECT nome FROM user WHERE id = ?", [user_cx]);
@@ -250,7 +250,7 @@ async function closeCx(user_cx: number, credito: number, debito: number, pix: nu
     const agora = new Date();
 
     const dia = String(agora.getDate()).padStart(2, '0');
-    const mes = String(agora.getMonth() + 1).padStart(2, '0'); 
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
     const ano = agora.getFullYear();
 
     const hora = String(agora.getHours()).padStart(2, '0');
@@ -284,19 +284,10 @@ async function closeCx(user_cx: number, credito: number, debito: number, pix: nu
         mensagem = "Parâmetro de enviar fechamento via whatsapp ativado porém número de envio não cadastrado"
     } else {
 
-        const venomClient = getVenomClient();
-        const venomError = getVenomError();
+        const tele = `55${ref}`;
 
+        await sendWhatsappMessage(tele, msg);
 
-        if (!venomClient) {
-            return {
-                success: false,
-                msg: ["Venom Client não está disponível no momento."],
-            };
-        }
-
-        const tele = `55${ref}@c.us`;
-        await venomClient.sendText(tele, msg);
 
         mensagem = "Envio do fechamento enviado para o whatsapp"
     }

@@ -40,13 +40,21 @@ const promise_1 = __importDefault(require("mysql2/promise"));
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
 const pool = promise_1.default.createPool({
-    host: '192.168.10.16',
-    password: 'Acaiconxego@2025',
-    user: 'acaiconxego',
-    database: 'acaiconxegoPD',
-    port: 51895,
+    host: 'localhost',
+    password: '1234',
+    user: 'root',
+    database: 'TOCAACAIPD',
+    port: 3306,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
+});
+pool.getConnection()
+    .then(conn => {
+    console.log('✅ Conexão com MySQL estabelecida!');
+    conn.release();
+})
+    .catch(err => {
+    console.error('❌ Erro ao conectar no MySQL:', err.message);
 });
 exports.default = pool;

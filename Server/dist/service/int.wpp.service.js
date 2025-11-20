@@ -28,15 +28,6 @@ const config_1 = require("../utils/wpp/config");
 function welcomeMessage(telefone) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const venomClient = (0, config_1.getVenomClient)();
-            const venomError = (0, config_1.getVenomError)();
-            // Verifica se o cliente Venom está ativo
-            if (!venomClient) {
-                return {
-                    success: false,
-                    msg: ["Venom Client não está disponível no momento."],
-                };
-            }
             // Consulta o valor mínimo necessário para utilizar cashback
             const querySdmin = "SELECT value FROM sys where id = 3";
             const [resultSdmin] = yield connection_1.default.query(querySdmin);
@@ -54,8 +45,8 @@ A cada compra que você fizer, você vai acumular um saldo de cashback. Quando e
 
 Fique à vontade para aproveitar todos os benefícios e continue saboreando o melhor do açaí! 😋
 `;
-            const tele = `55${telefone}@c.us`; // Formata o número para o padrão do WhatsApp
-            yield venomClient.sendText(tele, message);
+            const tel = `55${telefone}`;
+            yield (0, config_1.sendWhatsappMessage)(tel, message);
             return {
                 success: true,
                 msg: ["Boas-vindas enviadas com sucesso"],
@@ -98,15 +89,14 @@ function clientPoint(id) {
         console.log("Nome do cliente: ", clientName);
         console.log("Cashback do cliente: ", clientPoint);
         console.log("Telefone do cliente: ", clientPhone);
-        const venomClient = (0, config_1.getVenomClient)();
         // Mensagem de saldo de cashback personalizada
         const message = `Oi, ${clientName}! 😊
 O seu saldo de cashback é de R$ ${clientPoint}. Use-o para tornar a sua próxima compra ainda mais especial! 💕 Estamos ansiosos por vê-lo(a) novamente.
 
 Um abraço,
 Toca do Açaí­`;
-        const tele = `55${clientPhone}@c.us`;
-        yield venomClient.sendText(tele, message);
+        const tele = `55${clientPhone}`;
+        yield (0, config_1.sendWhatsappMessage)(tele, message);
         return {
             success: true,
             msg: ["Saldo do cliente enviado com sucesso"]

@@ -1,4 +1,4 @@
-export const api = "http://celebreserver2.ddns.net:5238/api";
+export const api = "http://127.0.0.1:5238/api";
 
 export const requestConfig = (method, data, token = null) => {
   let config;

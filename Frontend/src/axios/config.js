@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiAcai = axios.create({
-  baseURL: "http://celebreserver2.ddns.net:5238/api",
+  baseURL: "http://127.0.0.1:5238/api",
   headers: {
     "Content-Type": "application/json",
   },

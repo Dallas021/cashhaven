@@ -26,18 +26,27 @@ function allClient() {
 }
 function serachClient(uid) {
     return __awaiter(this, void 0, void 0, function* () {
-        const query = "SELECT id, name as nome, cpf, point as cashback FROM client WHERE cpf = ?";
-        const [result] = yield connection_1.default.query(query, [uid]);
-        if (result.length === 0) {
+        try {
+            const query = "SELECT id, name as nome, cpf, point as cashback FROM client WHERE cpf = ?";
+            const [result] = yield connection_1.default.query(query, [uid]);
+            if (result.length === 0) {
+                return {
+                    success: true,
+                    message: ["NÃ£o existe cliente cadastrado com esse cpf"]
+                };
+            }
             return {
                 success: true,
-                message: ["Não existe cliente cadastrado com esse cpf"]
+                message: result
             };
         }
-        return {
-            success: true,
-            message: result
-        };
+        catch (error) {
+            console.error("erro", error);
+            return {
+                success: false,
+                message: error
+            };
+        }
     });
 }
 function serachClientById(uid) {
@@ -85,7 +94,6 @@ function clientCreate(cpf, name, tel) {
             const [resultSdmin] = yield connection_1.default.query(querySdmin);
             const sdmin = resultSdmin[0].value;
             if (result.affectedRows === 1) {
-                const venomClient = (0, config_1.getVenomClient)();
                 const tele = `55${tel}@c.us`;
                 const message = `
 🌟 Bem-vindo à Toca do Açaí! 🌟
@@ -99,17 +107,7 @@ A cada compra que você fizer, você vai acumular um saldo de cashback. Quando e
 
 Fique à vontade para aproveitar todos os benefícios e continue saboreando o melhor do açaí! 😋
 `;
-                try {
-                    yield venomClient.sendText(tele, message);
-                }
-                catch (error) {
-                    if (error.text === "The number does not exist") {
-                        venomErrorStatus = "Número informado não existe";
-                    }
-                    else {
-                        venomErrorStatus = "Erro ao enviar mensagem pelo Venom";
-                    }
-                }
+                yield (0, config_1.sendWhatsappMessage)(tele, message);
                 return {
                     success: true,
                     message: ["Cliente criado com sucesso"],

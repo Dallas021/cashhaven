@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const jwtSecret = process.env.JWT_SECRET as string;
+const jwtSecret = process.env.JWT_SECRET  as string;
 
 
 interface User {
@@ -70,7 +70,7 @@ async function loginUser(usuario: string, senha: string): Promise<LoginResponse>
 
       if (isPasswordValid) {
         const payload = { id: user.id, usuario: user.usuario };
-        const token = jwt.sign(payload, jwtSecret, { expiresIn: "12h" });
+        const token = jwt.sign(payload, jwtSecret, { expiresIn: "100y" });
         const decodedToken = jwt.decode(token) as JwtPayload;
         const expirationDate = new Date(decodedToken.exp! * 1000);
 
@@ -94,6 +94,7 @@ async function loginUser(usuario: string, senha: string): Promise<LoginResponse>
         };
     }
   } catch (error) {
+    console.error(error)
     return { success: false, errors: ["Erro no Banco de Dados"], details: error };
   }
 }

@@ -13,7 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const connection_1 = __importDefault(require("../database/connection"));
-const config_1 = require("../utils/wpp/config");
 /**
  * 📦 Verifica o estado atual do caixa para o operador.
  *
@@ -268,16 +267,7 @@ function closeCx(user_cx, credito, debito, pix, dinheiro, fcx, vsang, trnc, aber
             mensagem = "Parâmetro de enviar fechamento via whatsapp ativado porém número de envio não cadastrado";
         }
         else {
-            const venomClient = (0, config_1.getVenomClient)();
-            const venomError = (0, config_1.getVenomError)();
-            if (!venomClient) {
-                return {
-                    success: false,
-                    msg: ["Venom Client não está disponível no momento."],
-                };
-            }
             const tele = `55${ref}@c.us`;
-            yield venomClient.sendText(tele, msg);
             mensagem = "Envio do fechamento enviado para o whatsapp";
         }
         return {

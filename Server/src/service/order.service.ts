@@ -1,8 +1,8 @@
 import pool from "../database/connection";
 import { RowDataPacket } from "mysql2";
-import axios from "axios";
 import * as dotenv from 'dotenv'
 import nfcService from './nfc.service'
+import { sendWhatsappMessage } from "../utils/wpp/config";
 
 dotenv.config();
 
@@ -185,13 +185,13 @@ async function createOrder(order: Order): Promise<{ success: boolean; message?: 
         }
       } else if (pagamento.cb === 0) {
         for (const client of order.clients) {
-          const [paramPorcentagem] = await pool.query<RowDataPacket[]>("SELECT value FROM sys WHERE id = 2");
+          const [paramPorcentagem] = await pool.query<RowDataPacket[]>("SELECT value FROM sys WHERE id = 3");
           const porcentagem = paramPorcentagem[0]?.value ?? 0;
 
           const [saldo_atual] = await pool.query<RowDataPacket[]>("SELECT point FROM client WHERE id = ?", [client.uid]);
           const saldoAtual = Number(saldo_atual[0]?.point ?? 0);
 
-          const cashback = Number(((porcentagem / 100) * pagamento.valor_recebido).toFixed(2));
+          const cashback = Number(((porcentagem / 100) * pagamento.valor_pedido).toFixed(2));
           const novo_saldo = saldoAtual + cashback;
 
           await pool.query("UPDATE client SET point = ? WHERE id = ?", [novo_saldo, client.uid]);
@@ -199,8 +199,6 @@ async function createOrder(order: Order): Promise<{ success: boolean; message?: 
 
         const [paramSefaz] = await pool.query<RowDataPacket[]>("SELECT bit FROM sys WHERE id = 9");
         const sefaz = paramSefaz[0].bit;
-
-        console.log("Parâmetro sefaz", sefaz);
 
         if ((pagamento.tipo == "2" || pagamento.tipo == "3") && sefaz == 1) {
           for (const client of order.clients) {
@@ -243,6 +241,20 @@ async function createOrder(order: Order): Promise<{ success: boolean; message?: 
     }
 
     await connection.commit();
+
+    const query = "SELECT tel, nome, ponto FROM client WHERE id = ?";
+    const [result]: any = await pool.query(query, [order.clients[0].uid]);
+    const tel = "55" + result[0].tel;
+    const clientName = result[0].nome;
+    const clientPoint = result[0].ponto;
+    const message = `Oi, ${clientName}! 😊
+O seu saldo de cashback é de R$ ${clientPoint}. Use-o para tornar a sua próxima compra ainda mais especial! 💕 Estamos ansiosos por vê-lo(a) novamente.
+
+Um abraço,
+Toca do Açaí­`;
+
+    await sendWhatsappMessage(tel, message);
+
     return { success: true, message: "Pedido enviado com sucesso!" };
 
   } catch (error: any) {

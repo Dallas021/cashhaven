@@ -21,11 +21,11 @@ async function allStock() {
 
 async function insertStock(produto: string, compra: number, venda: number, fornecedor: string, saldo: number) {
     const validations = [
-        { condition: !fornecedor, error: "É necessário informar o fornecedor" },
-        { condition: !produto, error: "É necessário informar o nome do produto" },
-        { condition: compra <= 0, error: "O preço de compra deve ser maior que zero" },
-        { condition: venda <= 0, error: "O preço de venda deve ser maior que zero" },
-        { condition: saldo < 0, error: "O saldo não pode ser negativo" },
+        { condition: !fornecedor,   error: "É necessário informar o fornecedor" },
+        { condition: !produto,      error: "É necessário informar o nome do produto" },
+        { condition: compra <= 0,   error: "O preço de compra deve ser maior que zero" },
+        { condition: venda <= 0,    error: "O preço de venda deve ser maior que zero" },
+        { condition: saldo < 0,     error: "O saldo não pode ser negativo" },
     ];
 
     for (const validation of validations) {

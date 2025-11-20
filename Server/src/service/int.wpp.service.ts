@@ -1,6 +1,5 @@
 import pool from "../database/connection";
-import { getVenomClient, getVenomError } from '../utils/wpp/config';
-
+import { sendWhatsappMessage } from "../utils/wpp/config";
 /**
  * Envia uma mensagem de boas-vindas ao cliente recém-cadastrado.
  * 
@@ -14,19 +13,9 @@ import { getVenomClient, getVenomError } from '../utils/wpp/config';
  */
 async function welcomeMessage(telefone: number) {
     try {
-        const venomClient = getVenomClient();
-        const venomError = getVenomError();
-
-        // Verifica se o cliente Venom está ativo
-        if (!venomClient) {
-            return {
-                success: false,
-                msg: ["Venom Client não está disponível no momento."],
-            };
-        }
 
         // Consulta o valor mínimo necessário para utilizar cashback
-        const querySdmin = "SELECT value FROM sys where id = 3";
+        const querySdmin = "SELECT value FROM sys where id = 6";
         const [resultSdmin]: any = await pool.query(querySdmin)
         const sdmin = resultSdmin[0].value;
 
@@ -44,8 +33,9 @@ A cada compra que você fizer, você vai acumular um saldo de cashback. Quando e
 Fique à vontade para aproveitar todos os benefícios e continue saboreando o melhor do açaí! 😋
 `;
 
-        const tele = `55${telefone}@c.us`; // Formata o número para o padrão do WhatsApp
-        await venomClient.sendText(tele, message);
+        const tel = `55${telefone}`
+
+        await sendWhatsappMessage(tel, message);
 
         return {
             success: true,
@@ -93,8 +83,6 @@ async function clientPoint(id: number) {
     console.log("Cashback do cliente: ", clientPoint)
     console.log("Telefone do cliente: ", clientPhone)
 
-    const venomClient = getVenomClient();
-
     // Mensagem de saldo de cashback personalizada
     const message = `Oi, ${clientName}! 😊
 O seu saldo de cashback é de R$ ${clientPoint}. Use-o para tornar a sua próxima compra ainda mais especial! 💕 Estamos ansiosos por vê-lo(a) novamente.
@@ -102,9 +90,9 @@ O seu saldo de cashback é de R$ ${clientPoint}. Use-o para tornar a sua próxim
 Um abraço,
 Toca do Açaí­`;
 
-    const tele = `55${clientPhone}@c.us`;
+    const tele = `55${clientPhone}`;
 
-    await venomClient.sendText(tele, message);
+    await sendWhatsappMessage(tele, message);
 
     return {
         success: true,

@@ -1,5 +1,5 @@
 import pool from "../database/connection";
-import { getVenomClient } from "../utils/wpp/config";
+import { sendWhatsappMessage } from "../utils/wpp/config";
 
 declare global {
     var success: any
@@ -17,21 +17,36 @@ async function allClient() {
 }
 
 async function serachClient(uid: string) {
-    const query = "SELECT id, name as nome, cpf, point as cashback FROM client WHERE cpf = ?";
+   try {
+   
+      const query = "SELECT id, name as nome, cpf, point as cashback FROM client WHERE cpf = ?";
 
-    const [result]: [any[], any[]] = await pool.query(query, [uid]);
-
-    if (result.length === 0) {
-        return {
-            success: true,
-            message: ["Não existe cliente cadastrado com esse cpf"]
-        }
-    }
-
-    return {
-        success: true,
-        message: result
-    }
+      const [result]: [any[], any[]] = await pool.query(query, [uid]);
+  
+      if (result.length === 0) {
+          return {
+              success: true,
+              message: ["NÃ£o existe cliente cadastrado com esse cpf"]
+          }
+      }
+  
+      return {
+          success: true,
+          message: result
+      }
+   
+   } catch (error) {
+   
+     console.error("erro", error)
+     
+     return {
+     
+       success: false,
+       message: error
+     
+     }
+   
+   }
 }
 
 async function serachClientById(uid: string) {
@@ -83,8 +98,8 @@ async function clientCreate(cpf: string, name: string, tel: string) {
         const sdmin = resultSdmin[0].value;
 
         if (result.affectedRows === 1) {
-            const venomClient = getVenomClient();
-            const tele = `55${tel}@c.us`; 
+
+            const tele = `55${tel}`; 
             const message = `
 🌟 Bem-vindo à Toca do Açaí! 🌟
 
@@ -98,15 +113,7 @@ A cada compra que você fizer, você vai acumular um saldo de cashback. Quando e
 Fique à vontade para aproveitar todos os benefícios e continue saboreando o melhor do açaí! 😋
 `;
 
-            try {
-                await venomClient.sendText(tele, message);
-            } catch (error: any) {
-                if (error.text === "The number does not exist") {
-                    venomErrorStatus = "Número informado não existe";
-                } else {
-                    venomErrorStatus = "Erro ao enviar mensagem pelo Venom";
-                }
-            }
+            await sendWhatsappMessage(tele, message);
 
             return {
                 success: true,

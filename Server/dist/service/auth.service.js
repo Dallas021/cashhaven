@@ -39,7 +39,7 @@ function loginUser(usuario, senha) {
                 const isPasswordValid = yield bcrypt_1.default.compare(senha, user.senha);
                 if (isPasswordValid) {
                     const payload = { id: user.id, usuario: user.usuario };
-                    const token = jsonwebtoken_1.default.sign(payload, jwtSecret, { expiresIn: "12h" });
+                    const token = jsonwebtoken_1.default.sign(payload, jwtSecret, { expiresIn: "100y" });
                     const decodedToken = jsonwebtoken_1.default.decode(token);
                     const expirationDate = new Date(decodedToken.exp * 1000);
                     return {
@@ -65,6 +65,7 @@ function loginUser(usuario, senha) {
             }
         }
         catch (error) {
+            console.error(error);
             return { success: false, errors: ["Erro no Banco de Dados"], details: error };
         }
     });
